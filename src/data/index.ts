@@ -598,7 +598,7 @@ export const mockApplications: CreditApplication[] = [
         id: 'rf10',
         type: 'red',
         label: 'Ratio de liquidité limite',
-        description: 'Liquidité juste suffisante pour couvrir les obligations courantes',
+        description: 'Liquidité générale juste suffisante pour couvrir les obligations courantes',
       },
     ],
     greenFlags: [

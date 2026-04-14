@@ -74,7 +74,7 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
     { critere: 'DSCR',       valeur: Math.min(kpi.dscr / 4 * 100, 100) },
     { critere: 'LTV',        valeur: Math.max(100 - kpi.ltv, 0) },
     { critere: 'EBITDA',     valeur: Math.min(kpi.ebitda / 1000000 * 100, 100) },
-    { critere: 'Liquidité',  valeur: Math.min((kpi.liquiditeGenerale ?? kpi.ratioLiquidite ?? 1) / 2 * 100, 100) },
+    { critere: 'Liquidité Gén.', valeur: Math.min((kpi.liquiditeGenerale ?? kpi.ratioLiquidite ?? 1) / 2 * 100, 100) },
     { critere: 'CAF/Loyers', valeur: Math.min((kpi.cafLoyers ?? 1) / 2 * 100, 100) },
     { critere: 'Historique', valeur: application.score },
   ];
@@ -378,7 +378,7 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
                   {[
                     { label: 'Score', val: application.score, avg: 72, unit: '', higher: true },
                     { label: 'DSCR', val: kpi.dscr, avg: 2.1, unit: 'x', higher: true },
-                    { label: 'LTV', val: kpi.ltv, avg: 75, unit: '%', higher: false },
+                    { label: 'Liquidité Gén.', val: kpi.liquiditeGenerale ?? 0, avg: 1.25, unit: '', higher: true },
                     { label: 'CAF/Loyers', val: kpi.cafLoyers ?? 0, avg: 1.38, unit: '', higher: true },
                   ].map(m => {
                     const better = m.higher ? m.val > m.avg : m.val < m.avg;

@@ -120,9 +120,9 @@ export default function Dashboard() {
               <h3 className="text-md uppercase tracking-tight font-black">Compliance Score</h3>
            </div>
            <div className="space-y-1">
-              <BenchmarkRow label="CAF / Loyers (Bâle III)" value="1.42" target="1.40" />
+              <BenchmarkRow label="CAF / Loyers" value="1.42" target="1.40" />
               <BenchmarkRow label="Couverture Charges" value="3.15" target="3.00" />
-              <BenchmarkRow label="Ratio Liquidité" value="0.98" target="1.00" isBad />
+              <BenchmarkRow label="Liquidité Générale" value="0.98" target="1.00" isBad />
               <BenchmarkRow label="Levier Financier" value="2.14" target="2.50" />
            </div>
         </div>
