@@ -2,218 +2,352 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   BarChart, Bar, RadialBarChart, RadialBar,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  LineChart, Line,
 } from 'recharts';
 
-const CHART_COLORS = {
-  navy:    'hsl(var(--chart-1))',
-  emerald: 'hsl(var(--chart-2))',
-  gold:    'hsl(var(--chart-3))',
-  red:     'hsl(var(--chart-4))',
-  purple:  'hsl(var(--chart-5))',
-  teal:    'hsl(var(--chart-6))',
+/* ── Design tokens ── */
+const T = {
+  navy:    '#1E2A5E',
+  indigo:  '#4F46E5',
+  emerald: '#059669',
+  amber:   '#F59E0B',
+  red:     '#DC2626',
+  violet:  '#7C3AED',
+  cyan:    '#0891B2',
+  slate:   '#64748B',
+  border:  '#E5E7EB',
+  muted:   '#F9FAFB',
+  text:    '#374151',
+  textMuted: '#9CA3AF',
 };
 
-const SECTOR_COLORS = [
-  '#1e3a5f', '#2563a8', '#3b82c4', '#0d9488', '#059669',
-  '#d97706', '#dc2626', '#7c3aed',
+const SECTOR_PALETTE = [
+  '#1E2A5E', '#4F46E5', '#0891B2', '#059669',
+  '#D97706', '#DC2626', '#7C3AED', '#DB2777',
 ];
 
-const tooltipStyle = {
-  backgroundColor: 'hsl(var(--popover))',
-  border: '1px solid hsl(var(--border))',
-  borderRadius: '8px',
-  padding: '10px 14px',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-  fontSize: '12px',
-  color: 'hsl(var(--popover-foreground))',
+const tooltipProps = {
+  contentStyle: {
+    background: '#FFFFFF',
+    border: '1px solid #E5E7EB',
+    borderRadius: '10px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
+    padding: '10px 14px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: '12px',
+    color: '#374151',
+  },
+  cursor: { fill: 'rgba(99,102,241,0.04)' },
 };
 
-// ─── Donut Chart ─────────────────────────────────────────────────────────────
-interface DonutChartProps {
+const axisStyle = {
+  tick: { fontSize: 11, fill: T.textMuted, fontFamily: "'Outfit', sans-serif" },
+  axisLine: false as const,
+  tickLine: false as const,
+};
+
+/* ══════════════════════════════════════════════════════════
+   1. DONUT CHART — Sector Distribution
+══════════════════════════════════════════════════════════ */
+interface DonutProps {
   data: Array<{ name: string; value: number; montant?: number }>;
 }
 
-export function SectorPieChart({ data }: DonutChartProps) {
+export function SectorPieChart({ data }: DonutProps) {
   const total = data.reduce((s, d) => s + d.value, 0);
 
   const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: {
     cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number;
   }) => {
-    if (percent < 0.06) return null;
-    const RADIAN = Math.PI / 180;
-    const r = innerRadius + (outerRadius - innerRadius) * 0.55;
-    const x = cx + r * Math.cos(-midAngle * RADIAN);
-    const y = cy + r * Math.sin(-midAngle * RADIAN);
+    if (percent < 0.07) return null;
+    const R = Math.PI / 180;
+    const r = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + r * Math.cos(-midAngle * R);
+    const y = cy + r * Math.sin(-midAngle * R);
     return (
-      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={600}>
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central"
+        fontSize={10} fontWeight={700} fontFamily="'DM Mono', monospace">
         {`${(percent * 100).toFixed(0)}%`}
       </text>
     );
   };
 
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0];
+    return (
+      <div style={tooltipProps.contentStyle}>
+        <p style={{ fontWeight: 600, marginBottom: 4 }}>{d.name}</p>
+        <p style={{ color: T.textMuted }}>{d.value} dossiers · {((d.value / total) * 100).toFixed(1)}%</p>
+      </div>
+    );
+  };
+
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={280}>
       <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={72}
-          outerRadius={115}
-          paddingAngle={2}
-          dataKey="value"
-          labelLine={false}
-          label={CustomLabel as never}
-        >
-          {data.map((_, index) => (
-            <Cell key={`cell-${index}`} fill={SECTOR_COLORS[index % SECTOR_COLORS.length]} stroke="transparent" />
+        <Pie data={data} cx="50%" cy="48%" innerRadius={68} outerRadius={108}
+          paddingAngle={2} dataKey="value" labelLine={false} label={CustomLabel as never}
+          animationBegin={0} animationDuration={800} animationEasing="ease-out">
+          {data.map((_, i) => (
+            <Cell key={i} fill={SECTOR_PALETTE[i % SECTOR_PALETTE.length]} stroke="transparent" />
           ))}
         </Pie>
-        {/* Center label */}
-        <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" fontSize={22} fontWeight={700} fill="hsl(var(--foreground))">
+        {/* Center text */}
+        <text x="50%" y="44%" textAnchor="middle" dominantBaseline="middle"
+          fontSize={24} fontWeight={700} fill={T.navy} fontFamily="'DM Mono', monospace">
           {total}
         </text>
-        <text x="50%" y="56%" textAnchor="middle" dominantBaseline="middle" fontSize={10} fill="hsl(var(--muted-foreground))">
+        <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle"
+          fontSize={10} fill={T.textMuted} fontFamily="'Outfit', sans-serif">
           dossiers
         </text>
-        <Tooltip
-          contentStyle={tooltipStyle}
-          formatter={(value: number, name: string) => [`${value} dossiers (${((value/total)*100).toFixed(1)}%)`, name]}
-        />
-        <Legend
-          verticalAlign="bottom"
-          height={40}
-          iconType="circle"
-          iconSize={8}
-          wrapperStyle={{ fontSize: '11px', paddingTop: '12px' }}
-        />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={7}
+          wrapperStyle={{ fontSize: '11px', paddingTop: '10px', fontFamily: "'Outfit', sans-serif" }} />
       </PieChart>
     </ResponsiveContainer>
   );
 }
 
-// ─── Area Chart ───────────────────────────────────────────────────────────────
-interface TimeSeriesChartProps {
+/* ══════════════════════════════════════════════════════════
+   2. AREA CHART — Monthly Evolution
+══════════════════════════════════════════════════════════ */
+interface AreaProps {
   data: Array<{ date: string; demandes: number; approuvees: number; refusees?: number }>;
 }
 
-export function TimeSeriesChart({ data }: TimeSeriesChartProps) {
+export function TimeSeriesChart({ data }: AreaProps) {
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+    <ResponsiveContainer width="100%" height={280}>
+      <AreaChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
         <defs>
-          <linearGradient id="gradDemandes" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={CHART_COLORS.navy} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.navy} stopOpacity={0} />
+          <linearGradient id="gDemandes" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={T.navy} stopOpacity={0.18} />
+            <stop offset="100%" stopColor={T.navy} stopOpacity={0} />
           </linearGradient>
-          <linearGradient id="gradApprouvees" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={CHART_COLORS.emerald} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.emerald} stopOpacity={0} />
+          <linearGradient id="gApprouvees" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={T.emerald} stopOpacity={0.18} />
+            <stop offset="100%" stopColor={T.emerald} stopOpacity={0} />
           </linearGradient>
-          <linearGradient id="gradRefusees" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={CHART_COLORS.red} stopOpacity={0.20} />
-            <stop offset="95%" stopColor={CHART_COLORS.red} stopOpacity={0} />
+          <linearGradient id="gRefusees" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={T.red} stopOpacity={0.15} />
+            <stop offset="100%" stopColor={T.red} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
-        <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} />
-        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} iconType="circle" iconSize={8} />
-        <Area type="monotone" dataKey="demandes" name="Demandes" stroke={CHART_COLORS.navy} strokeWidth={2} fill="url(#gradDemandes)" dot={{ r: 3, fill: CHART_COLORS.navy }} activeDot={{ r: 5 }} />
-        <Area type="monotone" dataKey="approuvees" name="Approuvées" stroke={CHART_COLORS.emerald} strokeWidth={2} fill="url(#gradApprouvees)" dot={{ r: 3, fill: CHART_COLORS.emerald }} activeDot={{ r: 5 }} />
+        <CartesianGrid strokeDasharray="3 3" stroke={T.border} strokeOpacity={0.7} vertical={false} />
+        <XAxis dataKey="date" {...axisStyle} />
+        <YAxis {...axisStyle} />
+        <Tooltip {...tooltipProps} />
+        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px', fontFamily: "'Outfit', sans-serif" }} iconType="circle" iconSize={7} />
+        <Area type="monotone" dataKey="demandes" name="Demandes" stroke={T.navy} strokeWidth={2}
+          fill="url(#gDemandes)" dot={{ r: 3.5, fill: T.navy, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }}
+          animationDuration={800} animationEasing="ease-out" />
+        <Area type="monotone" dataKey="approuvees" name="Approuvées" stroke={T.emerald} strokeWidth={2}
+          fill="url(#gApprouvees)" dot={{ r: 3.5, fill: T.emerald, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }}
+          animationDuration={900} animationEasing="ease-out" />
         {data[0]?.refusees !== undefined && (
-          <Area type="monotone" dataKey="refusees" name="Refusées" stroke={CHART_COLORS.red} strokeWidth={2} fill="url(#gradRefusees)" dot={{ r: 3, fill: CHART_COLORS.red }} activeDot={{ r: 5 }} />
+          <Area type="monotone" dataKey="refusees" name="Refusées" stroke={T.red} strokeWidth={2}
+            fill="url(#gRefusees)" dot={{ r: 3.5, fill: T.red, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }}
+            animationDuration={1000} animationEasing="ease-out" />
         )}
       </AreaChart>
     </ResponsiveContainer>
   );
 }
 
-// ─── Score Distribution Bar Chart ────────────────────────────────────────────
-interface ScoreDistributionChartProps {
+/* ══════════════════════════════════════════════════════════
+   3. SCORE DISTRIBUTION — Colored Bar Chart
+══════════════════════════════════════════════════════════ */
+interface ScoreDistProps {
   data: Array<{ range: string; count: number }>;
 }
 
-export function ScoreDistributionChart({ data }: ScoreDistributionChartProps) {
-  const getBarColor = (range: string) => {
-    const start = parseInt(range.split('-')[0]);
-    if (start >= 80) return CHART_COLORS.emerald;
-    if (start >= 60) return CHART_COLORS.navy;
-    if (start >= 40) return CHART_COLORS.gold;
-    return CHART_COLORS.red;
-  };
+const scoreColor = (range: string) => {
+  const s = parseInt(range);
+  if (s >= 80) return T.emerald;
+  if (s >= 60) return T.navy;
+  if (s >= 40) return T.amber;
+  return T.red;
+};
 
+export function ScoreDistributionChart({ data }: ScoreDistProps) {
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} vertical={false} />
-        <XAxis dataKey="range" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }} />
-        <Bar dataKey="count" name="Dossiers" radius={[6, 6, 0, 0]}>
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={getBarColor(entry.range)} />
-          ))}
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -15, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={T.border} strokeOpacity={0.7} vertical={false} />
+        <XAxis dataKey="range" {...axisStyle} />
+        <YAxis {...axisStyle} />
+        <Tooltip {...tooltipProps} formatter={(v: number) => [v, 'Dossiers']} />
+        <Bar dataKey="count" radius={[5, 5, 0, 0]} animationDuration={700} animationEasing="ease-out">
+          {data.map((e, i) => <Cell key={i} fill={scoreColor(e.range)} />)}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
-// ─── Horizontal Sensitivity Bar Chart ────────────────────────────────────────
-interface SensitivityChartProps {
+/* ══════════════════════════════════════════════════════════
+   4. SENSITIVITY — Horizontal Bar
+══════════════════════════════════════════════════════════ */
+interface SensitivityProps {
   data: Array<{ variable: string; impact: number; color: string }>;
 }
 
-export function SensitivityChart({ data }: SensitivityChartProps) {
+export function SensitivityChart({ data }: SensitivityProps) {
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={data} layout="vertical" margin={{ left: 110, right: 20, top: 4, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} horizontal={false} />
-        <XAxis type="number" domain={[0, 0.5]} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-        <YAxis type="category" dataKey="variable" tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} axisLine={false} tickLine={false} width={105} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${(v * 100).toFixed(1)}%`, 'Impact']} />
-        <Bar dataKey="impact" radius={[0, 6, 6, 0]}>
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={data} layout="vertical" margin={{ left: 120, right: 24, top: 4, bottom: 4 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={T.border} strokeOpacity={0.7} horizontal={false} />
+        <XAxis type="number" domain={[0, 0.5]} tickFormatter={v => `${(v * 100).toFixed(0)}%`} {...axisStyle} />
+        <YAxis type="category" dataKey="variable" width={115} {...axisStyle}
+          tick={{ fontSize: 11, fill: T.text, fontFamily: "'Outfit', sans-serif" }} />
+        <Tooltip {...tooltipProps} formatter={(v: number) => [`${(v * 100).toFixed(1)}%`, 'Impact']} />
+        <Bar dataKey="impact" radius={[0, 5, 5, 0]} animationDuration={700} animationEasing="ease-out">
+          {data.map((e, i) => <Cell key={i} fill={e.color} />)}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
-// ─── Radial KPI Gauge ─────────────────────────────────────────────────────────
-interface GaugeChartProps {
+/* ══════════════════════════════════════════════════════════
+   5. RADAR CHART — Financial Profile
+══════════════════════════════════════════════════════════ */
+interface RadarProps {
+  data: Array<{ critere: string; valeur: number; seuil?: number }>;
+  color?: string;
+  label?: string;
+}
+
+export function FinancialRadarChart({ data, color = T.navy, label = 'Score' }: RadarProps) {
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
+        <PolarGrid stroke={T.border} strokeOpacity={0.8} />
+        <PolarAngleAxis dataKey="critere"
+          tick={{ fontSize: 10, fill: T.text, fontFamily: "'Outfit', sans-serif", fontWeight: 500 }} />
+        <PolarRadiusAxis angle={90} domain={[0, 100]}
+          tick={{ fontSize: 9, fill: T.textMuted }} tickCount={4} />
+        {data[0]?.seuil !== undefined && (
+          <Radar name="Seuil" dataKey="seuil" stroke={T.amber} fill={T.amber} fillOpacity={0.06}
+            strokeWidth={1.5} strokeDasharray="4 3" />
+        )}
+        <Radar name={label} dataKey="valeur" stroke={color} fill={color} fillOpacity={0.18}
+          strokeWidth={2} dot={{ r: 3, fill: color, strokeWidth: 0 }} />
+        <Tooltip {...tooltipProps} formatter={(v: number) => [`${v.toFixed(0)}`, '']} />
+        <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif" }} iconType="circle" iconSize={7} />
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   6. BEHAVIORAL RADAR — BAM + Comportemental
+══════════════════════════════════════════════════════════ */
+export function BehavioralRadarChart({ data }: RadarProps) {
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
+        <PolarGrid stroke={T.border} strokeOpacity={0.8} />
+        <PolarAngleAxis dataKey="critere"
+          tick={{ fontSize: 10, fill: T.text, fontFamily: "'Outfit', sans-serif", fontWeight: 500 }} />
+        <PolarRadiusAxis angle={90} domain={[0, 100]}
+          tick={{ fontSize: 9, fill: T.textMuted }} tickCount={4} />
+        <Radar name="Score" dataKey="valeur" stroke={T.violet} fill={T.violet} fillOpacity={0.18}
+          strokeWidth={2} dot={{ r: 3, fill: T.violet, strokeWidth: 0 }} />
+        <Tooltip {...tooltipProps} formatter={(v: number) => [`${v.toFixed(0)}`, '']} />
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   7. RADIAL GAUGE — Single KPI
+══════════════════════════════════════════════════════════ */
+interface GaugeProps {
   value: number;
   max: number;
   label: string;
   color?: string;
   unit?: string;
+  threshold?: number;
 }
 
-export function GaugeChart({ value, max, label, color = CHART_COLORS.navy, unit = '' }: GaugeChartProps) {
+export function GaugeChart({ value, max, label, color, unit = '', threshold }: GaugeProps) {
   const pct = Math.min((value / max) * 100, 100);
-  const data = [{ name: label, value: pct, fill: color }, { name: 'rest', value: 100 - pct, fill: 'hsl(var(--muted))' }];
+  const thresholdPct = threshold ? Math.min((threshold / max) * 100, 100) : null;
+  const autoColor = color ?? (thresholdPct ? (pct >= thresholdPct ? T.emerald : T.red) : T.navy);
+
+  const gaugeData = [
+    { name: label, value: pct, fill: autoColor },
+    { name: 'rest', value: 100 - pct, fill: '#F3F4F6' },
+  ];
 
   return (
-    <div className="relative flex flex-col items-center">
-      <ResponsiveContainer width={120} height={80}>
-        <RadialBarChart
-          cx="50%" cy="90%"
-          innerRadius="60%" outerRadius="100%"
-          startAngle={180} endAngle={0}
-          data={data}
-          barSize={10}
-        >
-          <RadialBar dataKey="value" cornerRadius={5} background={{ fill: 'hsl(var(--muted))' }} />
-        </RadialBarChart>
-      </ResponsiveContainer>
-      <div className="absolute bottom-0 text-center">
-        <p className="text-lg font-bold font-mono" style={{ color }}>{value.toFixed(2)}{unit}</p>
-        <p className="text-[10px] text-muted-foreground">{label}</p>
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: 110, height: 65 }}>
+        <ResponsiveContainer width={110} height={80}>
+          <RadialBarChart cx="50%" cy="90%" innerRadius="55%" outerRadius="100%"
+            startAngle={180} endAngle={0} data={gaugeData} barSize={10}>
+            <RadialBar dataKey="value" cornerRadius={5} background={{ fill: '#F3F4F6' }} />
+          </RadialBarChart>
+        </ResponsiveContainer>
+        <div className="absolute bottom-0 left-0 right-0 text-center">
+          <p className="num text-[15px] font-700 leading-none" style={{ color: autoColor, fontWeight: 700 }}>
+            {value.toFixed(2)}{unit}
+          </p>
+        </div>
       </div>
+      <p className="text-[10px] mt-1 text-center" style={{ color: T.textMuted, fontFamily: "'Outfit', sans-serif" }}>{label}</p>
     </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   8. PORTFOLIO BAR — Segment Concentration
+══════════════════════════════════════════════════════════ */
+interface PortfolioProps {
+  data: Array<{ segment: string; montant: number; count: number }>;
+}
+
+export function PortfolioChart({ data }: PortfolioProps) {
+  const fmt = (v: number) => `${(v / 1_000_000).toFixed(0)}M`;
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={T.border} strokeOpacity={0.7} vertical={false} />
+        <XAxis dataKey="segment" {...axisStyle} />
+        <YAxis yAxisId="l" tickFormatter={fmt} {...axisStyle} />
+        <YAxis yAxisId="r" orientation="right" {...axisStyle} />
+        <Tooltip {...tooltipProps}
+          formatter={(v: number, name: string) => [name === 'Montant (MAD)' ? `${fmt(v)} MAD` : v, name]} />
+        <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif" }} iconType="circle" iconSize={7} />
+        <Bar yAxisId="l" dataKey="montant" name="Montant (MAD)" fill={T.navy} radius={[5,5,0,0]} animationDuration={700} />
+        <Bar yAxisId="r" dataKey="count" name="Nb dossiers" fill={T.emerald} radius={[5,5,0,0]} animationDuration={800} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   9. MINI SPARKLINE — for KPI cards
+══════════════════════════════════════════════════════════ */
+interface SparklineProps {
+  data: number[];
+  color?: string;
+  height?: number;
+}
+
+export function Sparkline({ data, color = T.navy, height = 40 }: SparklineProps) {
+  const d = data.map((v, i) => ({ v, i }));
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <LineChart data={d} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
+        <Line type="monotone" dataKey="v" stroke={color} strokeWidth={1.5}
+          dot={false} animationDuration={600} />
+      </LineChart>
+    </ResponsiveContainer>
   );
 }

@@ -1,200 +1,261 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, BarChart3, Settings, Search, Menu, X, TrendingUp, Bell, ChevronRight } from 'lucide-react';
+import {
+  LayoutDashboard, FileText, BarChart3, Settings,
+  Search, Menu, X, Bell, ChevronRight,
+  TrendingUp, CircleDot, LogOut, User, Sliders,
+} from 'lucide-react';
 import { useState } from 'react';
 import { ROUTE_PATHS } from '@/lib/index';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
+interface LayoutProps { children: React.ReactNode; }
 
-const navigationItems = [
-  { label: 'Tableau de Bord', path: ROUTE_PATHS.DASHBOARD, icon: LayoutDashboard, badge: null },
-  { label: 'Demandes', path: ROUTE_PATHS.APPLICATIONS, icon: FileText, badge: '42' },
-  { label: 'Statistiques', path: ROUTE_PATHS.STATISTICS, icon: BarChart3, badge: null },
-  { label: 'Paramètres', path: ROUTE_PATHS.SETTINGS, icon: Settings, badge: null },
+const NAV = [
+  { label: 'Dashboard',    path: ROUTE_PATHS.DASHBOARD,    icon: LayoutDashboard, badge: null },
+  { label: 'Demandes',     path: ROUTE_PATHS.APPLICATIONS, icon: FileText,        badge: '42' },
+  { label: 'Statistiques', path: ROUTE_PATHS.STATISTICS,   icon: BarChart3,       badge: null },
+  { label: 'Paramètres',   path: ROUTE_PATHS.SETTINGS,     icon: Settings,        badge: null },
+];
+
+const PORTFOLIO_STATS = [
+  { label: 'Dossiers actifs', value: '156', color: '#F59E0B' },
+  { label: 'Taux approbation', value: '78.1%', color: '#059669' },
+  { label: 'En cours',        value: '42',    color: '#6366F1' },
 ];
 
 export function Layout({ children }: LayoutProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
-  const SidebarContent = () => (
-    <div className="flex h-full flex-col">
-      {/* Logo */}
-      <div className="flex h-16 items-center border-b border-sidebar-border px-5">
-        <Link to={ROUTE_PATHS.DASHBOARD} className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold-gradient shadow-sm">
-            <TrendingUp className="h-5 w-5 text-sidebar-primary-foreground" />
+  const Sidebar = ({ onClose }: { onClose?: () => void }) => (
+    <div className="flex h-full flex-col" style={{ background: 'var(--sidebar-bg)' }}>
+
+      {/* ── Logo ── */}
+      <div className="flex h-[60px] items-center px-5 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
+        <Link to={ROUTE_PATHS.DASHBOARD} className="flex items-center gap-3" onClick={onClose}>
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' }}>
+            <TrendingUp className="h-4 w-4 text-white" strokeWidth={2.5} />
           </div>
-          <div>
-            <p className="text-sm font-bold text-sidebar-foreground tracking-wide">CreditScore</p>
-            <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-widest font-medium">Pro Platform</p>
+          <div className="leading-none">
+            <p className="text-[13px] font-700 tracking-tight" style={{ color: 'rgba(255,255,255,0.95)', fontWeight: 700 }}>
+              CreditScore
+            </p>
+            <p className="text-[9px] font-600 uppercase tracking-[0.12em] mt-0.5"
+              style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>
+              Pro Platform
+            </p>
           </div>
         </Link>
+        {onClose && (
+          <button onClick={onClose} className="ml-auto p-1 rounded" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
-      {/* Nav label */}
-      <div className="px-5 pt-5 pb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">Navigation</p>
+      {/* ── Nav Section Label ── */}
+      <div className="px-5 pt-6 pb-2">
+        <p className="section-label" style={{ color: 'rgba(255,255,255,0.25)' }}>Menu principal</p>
       </div>
 
-      {/* Nav items */}
-      <nav className="flex-1 space-y-0.5 px-3">
-        {navigationItems.map((item) => {
+      {/* ── Navigation ── */}
+      <nav className="flex-1 px-3 space-y-0.5">
+        {NAV.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const active = location.pathname === item.path;
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
-                isActive
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
-              }`}
+              onClick={onClose}
+              className="group flex items-center justify-between rounded-lg px-3 py-2.5 transition-all duration-150"
+              style={{
+                background: active ? 'rgba(255,255,255,0.09)' : 'transparent',
+                color: active ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.55)',
+              }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`h-4 w-4 ${isActive ? 'text-accent' : 'text-sidebar-foreground/50 group-hover:text-accent/80'}`} />
-                {item.label}
+                <div className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+                  style={{ background: active ? 'rgba(245,158,11,0.15)' : 'transparent' }}>
+                  <Icon className="h-4 w-4" style={{ color: active ? '#F59E0B' : 'rgba(255,255,255,0.45)' }} strokeWidth={active ? 2 : 1.75} />
+                </div>
+                <span className="text-[13px]" style={{ fontWeight: active ? 600 : 400 }}>{item.label}</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 {item.badge && (
-                  <Badge className="h-4 min-w-4 px-1 text-[10px] bg-accent/20 text-accent border-0 font-semibold">
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-700"
+                    style={{ background: 'rgba(245,158,11,0.2)', color: '#F59E0B', fontWeight: 700 }}>
                     {item.badge}
-                  </Badge>
+                  </span>
                 )}
-                {isActive && <ChevronRight className="h-3 w-3 text-accent/60" />}
+                {active && <ChevronRight className="h-3 w-3" style={{ color: 'rgba(255,255,255,0.25)' }} />}
               </div>
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Stats summary */}
-      <div className="mx-3 mb-3 rounded-lg bg-sidebar-accent/40 border border-sidebar-border/50 p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40 mb-2">Portefeuille</p>
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-sidebar-foreground/60">Total dossiers</span>
-            <span className="text-xs font-bold text-sidebar-foreground font-mono">156</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-sidebar-foreground/60">Taux approbation</span>
-            <span className="text-xs font-bold text-chart-2 font-mono">78.1%</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-sidebar-foreground/60">En cours</span>
-            <span className="text-xs font-bold text-accent font-mono">42</span>
-          </div>
+      {/* ── Portfolio Mini Stats ── */}
+      <div className="mx-3 mb-3 rounded-xl p-3.5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <p className="section-label mb-3" style={{ color: 'rgba(255,255,255,0.25)' }}>Portefeuille</p>
+        <div className="space-y-2.5">
+          {PORTFOLIO_STATS.map(s => (
+            <div key={s.label} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />
+                <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.45)' }}>{s.label}</span>
+              </div>
+              <span className="num text-[12px] font-600" style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{s.value}</span>
+            </div>
+          ))}
         </div>
+        {/* Mini progress bar */}
+        <div className="mt-3 progress-track">
+          <div className="progress-fill" style={{ width: '78.1%', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
+        </div>
+        <p className="text-[10px] mt-1.5" style={{ color: 'rgba(255,255,255,0.25)' }}>78.1% taux d'approbation</p>
       </div>
 
-      {/* User */}
-      <div className="border-t border-sidebar-border p-3">
+      {/* ── User Profile ── */}
+      <div className="border-t p-3" style={{ borderColor: 'var(--sidebar-border)' }}>
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <Avatar className="h-8 w-8 ring-2 ring-accent/30">
-            <AvatarFallback className="bg-navy-gradient text-sidebar-foreground text-xs font-bold">AB</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 overflow-hidden">
-            <p className="text-xs font-semibold text-sidebar-foreground truncate">Ahmed Benali</p>
-            <p className="text-[10px] text-sidebar-foreground/50 truncate">Analyste Senior</p>
+          <div className="relative">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-700"
+              style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: '#fff', fontWeight: 700 }}>
+              AB
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 animate-pulse-dot"
+              style={{ background: '#059669', borderColor: 'var(--sidebar-bg)' }} />
           </div>
-          <div className="h-2 w-2 rounded-full bg-chart-2 shadow-sm" title="En ligne" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[12px] font-600 truncate" style={{ color: 'rgba(255,255,255,0.90)', fontWeight: 600 }}>Ahmed Benali</p>
+            <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>Analyste Senior · Crédit</p>
+          </div>
+          <button className="p-1 rounded transition-colors" style={{ color: 'rgba(255,255,255,0.25)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'}>
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar hidden lg:block">
-        <SidebarContent />
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+
+      {/* ── Desktop Sidebar ── */}
+      <aside className="fixed left-0 top-0 z-40 h-screen w-[220px] hidden lg:block">
+        <Sidebar />
       </aside>
 
-      {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Header */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-5">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden h-8 w-8"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
+      {/* ── Main Area ── */}
+      <div className="lg:pl-[220px] flex flex-col min-h-screen">
 
-          {/* Breadcrumb / Search */}
-          <div className="flex-1">
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+        {/* ── Top Header ── */}
+        <header className="sticky top-0 z-30 flex h-[56px] items-center gap-3 px-5 lg:px-6"
+          style={{
+            background: 'rgba(248,249,252,0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderBottom: '1px solid rgba(229,231,235,0.8)',
+          }}>
+
+          {/* Mobile menu toggle */}
+          <button
+            className="lg:hidden flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            style={{ background: '#F3F4F6' }}
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="h-4 w-4" style={{ color: '#374151' }} />
+          </button>
+
+          {/* Search */}
+          <div className="flex-1 max-w-[360px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: '#9CA3AF' }} />
               <Input
                 type="search"
-                placeholder="Rechercher un dossier, client..."
-                className="pl-9 h-8 text-sm bg-muted/40 border-border/60 focus:bg-background"
+                placeholder="Rechercher dossier, client, ID..."
+                className="pl-9 h-8 text-[13px] border-0 focus-visible:ring-1"
+                style={{ background: '#F3F4F6', color: '#374151' }}
               />
             </div>
           </div>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-chart-4" />
-            </Button>
+          <div className="flex-1" />
 
+          {/* Right actions */}
+          <div className="flex items-center gap-1.5">
+
+            {/* Notifications */}
+            <button className="relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100">
+              <Bell className="h-4 w-4" style={{ color: '#6B7280' }} />
+              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full" style={{ background: '#DC2626' }} />
+            </button>
+
+            {/* Settings shortcut */}
+            <button className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100">
+              <Sliders className="h-4 w-4" style={{ color: '#6B7280' }} />
+            </button>
+
+            {/* Divider */}
+            <div className="h-5 w-px mx-1" style={{ background: '#E5E7EB' }} />
+
+            {/* User dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">AB</AvatarFallback>
-                  </Avatar>
-                </Button>
+                <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-700"
+                    style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: '#fff', fontWeight: 700 }}>
+                    AB
+                  </div>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-[12px] font-600 leading-none" style={{ fontWeight: 600, color: '#111827' }}>Ahmed Benali</p>
+                    <p className="text-[10px] leading-none mt-0.5" style={{ color: '#9CA3AF' }}>Analyste Senior</p>
+                  </div>
+                  <ChevronRight className="h-3 w-3 rotate-90 hidden sm:block" style={{ color: '#9CA3AF' }} />
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-0.5">
-                    <p className="text-sm font-semibold">Ahmed Benali</p>
-                    <p className="text-xs text-muted-foreground">Analyste Senior · Crédit</p>
-                  </div>
+                  <p className="text-sm font-semibold">Ahmed Benali</p>
+                  <p className="text-xs text-muted-foreground font-normal">ahmed.benali@leasingcorp.ma</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profil</DropdownMenuItem>
-                <DropdownMenuItem>Paramètres</DropdownMenuItem>
+                <DropdownMenuItem><User className="mr-2 h-4 w-4" />Profil</DropdownMenuItem>
+                <DropdownMenuItem><Settings className="mr-2 h-4 w-4" />Paramètres</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">Déconnexion</DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive"><LogOut className="mr-2 h-4 w-4" />Déconnexion</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        <main className="p-5 lg:p-6">
+        {/* ── Page Content ── */}
+        <main className="flex-1 p-5 lg:p-6 xl:p-8">
           {children}
         </main>
       </div>
 
-      {/* Mobile overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <aside className="fixed left-0 top-0 h-screen w-64 bg-sidebar" onClick={e => e.stopPropagation()}>
-            <SidebarContent />
+      {/* ── Mobile Sidebar Overlay ── */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 animate-fade-in"
+            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setMobileOpen(false)}
+          />
+          <aside className="absolute left-0 top-0 h-full w-[220px] animate-slide-right">
+            <Sidebar onClose={() => setMobileOpen(false)} />
           </aside>
         </div>
       )}
