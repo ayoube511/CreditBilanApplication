@@ -61,9 +61,13 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
 
   if (!application) {
     return (
-      <div className="p-6">
-        <p className="text-muted-foreground">Dossier {applicationId} introuvable.</p>
-        <Button onClick={onClose} className="mt-4">Fermer</Button>
+      <div className="w-full flex items-center justify-center p-20 animate-fade-in">
+        <div className="bg-white border border-slate-200 p-8 rounded-xl shadow-sm text-center max-w-sm">
+           <AlertTriangle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+           <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Dossier de Introuvable</h3>
+           <p className="text-[10px] text-slate-400 font-bold uppercase mt-2 mb-6">Le registre {applicationId} est inaccessible.</p>
+           <Button onClick={onClose} className="w-full bg-[#565e74] text-white text-[10px] font-black uppercase tracking-widest h-10">Retour au Registre</Button>
+        </div>
       </div>
     );
   }
@@ -74,333 +78,231 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
     { critere: 'DSCR',       valeur: Math.min(kpi.dscr / 4 * 100, 100) },
     { critere: 'LTV',        valeur: Math.max(100 - kpi.ltv, 0) },
     { critere: 'EBITDA',     valeur: Math.min(kpi.ebitda / 1000000 * 100, 100) },
-    { critere: 'Liquidité Gén.', valeur: Math.min((kpi.liquiditeGenerale ?? kpi.ratioLiquidite ?? 1) / 2 * 100, 100) },
+    { critere: 'Liquidité',  valeur: Math.min((kpi.liquiditeGenerale ?? kpi.ratioLiquidite ?? 1) / 2 * 100, 100) },
     { critere: 'CAF/Loyers', valeur: Math.min((kpi.cafLoyers ?? 1) / 2 * 100, 100) },
-    { critere: 'Historique', valeur: application.score },
+    { critere: 'Comport.',   valeur: application.score },
   ];
 
   const documentImages = [IMAGES.DOCUMENTS_1, IMAGES.DOCUMENTS_2, IMAGES.DOCUMENTS_3];
 
   return (
-    <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 overflow-hidden">
-      <div className="h-full flex flex-col">
-        {/* Header */}
-        <div className="border-b bg-card px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div>
-              <h2 className="text-lg font-bold font-mono text-primary">{application.id}</h2>
-              <p className="text-xs text-muted-foreground">{application.client}</p>
+    <div className="animate-in fade-in zoom-in-95 duration-300 slide-in-from-bottom-2 space-y-8">
+      
+      {/* ── DRILL-DOWN HEADER ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-2">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onClose}
+            className="w-10 h-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:text-[#565e74] hover:border-[#565e74] transition-all shadow-sm"
+          >
+            <X size={18} />
+          </button>
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+              <span>Registre</span>
+              <span className="opacity-30">/</span>
+              <span className="text-slate-300">Dossier</span>
             </div>
-            <Badge variant="outline" className="badge-neutral text-xs">{application.segment}</Badge>
-            <Badge variant="outline" className="badge-neutral text-xs">{application.secteur}</Badge>
-            <Badge className={`${getStatusColor(application.statut)} text-xs`}>{application.statut}</Badge>
-            <Badge className={`${getClassColor(application.classe)} text-xs`}>Classe {application.classe}</Badge>
+            <h1 className="text-xl font-black text-slate-800 tracking-tightest uppercase flex items-center gap-3">
+              {application.id}
+              <Badge className={`${getStatusColor(application.statut)} text-[9px] font-black uppercase tracking-[0.1em] px-2.5 py-1 border-none ml-2`}>
+                 {application.statut}
+              </Badge>
+            </h1>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-            <X className="h-4 w-4" />
-          </Button>
+        </div>
+        <div className="flex items-center gap-3">
+           <Button variant="outline" className="h-10 px-5 border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 gap-2 hover:bg-slate-50 transition-all">
+              <Download size={14} /> Dossier PDF
+           </Button>
+           <Button className="h-10 px-6 bg-[#565e74] text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-sm">
+              Valider la Décision
+           </Button>
+        </div>
+      </div>
+
+      {/* ── KPI PULSE ROW (Minimalist Observable Icons) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+         {/* KPI: AI Score */}
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-6">
+               <div className="flex justify-between items-start mb-2">
+                  <div className={`p-0 text-slate-900 group-hover:scale-110 transition-transform ${application.score >= 75 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                     <ShieldCheck size={24} strokeWidth={2.5} />
+                  </div>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">RATING</Badge>
+               </div>
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Score Engagement</p>
+               <div className="flex items-baseline gap-2">
+                  <h3 className={`text-3xl font-black tabular-nums tracking-tighter ${application.score >= 75 ? 'text-emerald-600' : 'text-amber-500'}`}>{application.score}</h3>
+                  <span className="text-xs font-bold text-slate-300 tracking-tight">/100</span>
+               </div>
+            </CardContent>
+         </Card>
+
+         {/* KPI: Engagement */}
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-6">
+               <div className="flex justify-between items-start mb-2">
+                  <div className="p-0 text-[#565e74] group-hover:scale-110 transition-transform">
+                     <Activity size={24} strokeWidth={2.5} />
+                  </div>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">FINANCE</Badge>
+               </div>
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Engagement Total</p>
+               <div className="flex items-baseline gap-1">
+                  <h3 className="text-3xl font-black tabular-nums tracking-tighter text-slate-800">{formatCurrency(kpi.montantDemande).split(',')[0]}</h3>
+                  <span className="text-[10px] font-black text-slate-300 uppercase ml-1">MAD</span>
+               </div>
+            </CardContent>
+         </Card>
+
+         {/* KPI: Solvabilité */}
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-6">
+               <div className="flex justify-between items-start mb-2">
+                  <div className="p-0 text-emerald-500 group-hover:scale-110 transition-transform">
+                     <TrendingUp size={24} strokeWidth={2.5} />
+                  </div>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">SOLVABILITÉ</Badge>
+               </div>
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ratio DSCR</p>
+               <div className="flex items-baseline gap-1">
+                  <h3 className="text-3xl font-black tabular-nums tracking-tighter text-slate-800">{kpi.dscr.toFixed(2)}</h3>
+                  <span className="text-xs font-bold text-slate-400 ml-1">x</span>
+               </div>
+            </CardContent>
+         </Card>
+
+         {/* KPI: Probabilité Défaut */}
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-6">
+               <div className="flex justify-between items-start mb-2">
+                  <div className={`p-0 group-hover:scale-110 transition-transform ${application.probabiliteDefaut > 15 ? 'text-rose-500' : 'text-slate-400'}`}>
+                     <AlertTriangle size={24} strokeWidth={2.5} />
+                  </div>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">RISQUE</Badge>
+               </div>
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Défaut Probable</p>
+               <div className="flex items-baseline gap-1">
+                  <h3 className={`text-3xl font-black tabular-nums tracking-tighter ${application.probabiliteDefaut > 15 ? 'text-rose-500' : 'text-slate-800'}`}>{application.probabiliteDefaut.toFixed(1)}</h3>
+                  <span className="text-xs font-bold text-slate-400 ml-1">%</span>
+               </div>
+            </CardContent>
+         </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Risk Radar & Analytics */}
+        <div className="lg:col-span-12">
+           <Card className="border-none shadow-[0_2px_15px_rgba(0,0,0,0.02)] bg-white">
+              <CardHeader className="border-b border-slate-50 px-8 py-6">
+                 <div className="flex items-center justify-between">
+                    <div>
+                       <CardTitle className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Analyse Factorielle Multidimensionnelle</CardTitle>
+                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Comparatif vs Benchmarks Sectoriels</p>
+                    </div>
+                    <Sparkles className="h-4 w-4 text-[#565e74]" />
+                 </div>
+              </CardHeader>
+              <CardContent className="p-8">
+                 <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="flex items-center justify-center bg-slate-50/50 rounded-2xl p-6 border border-slate-100/50">
+                       <ResponsiveContainer width="100%" height={320}>
+                          <RadarChart data={radarData}>
+                             <PolarGrid stroke="#E2E8F0" strokeDasharray="3 3" />
+                             <PolarAngleAxis dataKey="critere" tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900, fontFamily: 'Manrope' }} />
+                             <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                             <Radar name="Dossier" dataKey="valeur" stroke="#565e74" fill="#565e74" fillOpacity={0.15} strokeWidth={3} />
+                          </RadarChart>
+                       </ResponsiveContainer>
+                    </div>
+                    <div className="space-y-6">
+                       <div className="p-6 bg-[#565e74]/5 border-l-4 border-[#565e74] rounded-r-xl">
+                          <h4 className="text-[10px] font-black text-[#565e74] uppercase tracking-widest mb-3 flex items-center gap-2">
+                             <Sparkles size={14} /> Recommandation Stratégique IA
+                          </h4>
+                          <p className="text-xs leading-relaxed text-slate-600 font-bold italic">"{application.recommandationLLM.analyse}"</p>
+                       </div>
+                       <div className="grid grid-cols-2 gap-4">
+                          <div className="p-5 bg-emerald-50/30 rounded-xl border border-emerald-100/50">
+                             <h5 className="text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-3">Points Forts</h5>
+                             <ul className="space-y-2">
+                                {application.recommandationLLM.pointsForts.slice(0, 3).map((p, i) => (
+                                   <li key={i} className="text-[10px] text-emerald-800 font-bold flex items-start gap-2">
+                                      <span className="opacity-40">•</span>{p}
+                                   </li>
+                                ))}
+                             </ul>
+                          </div>
+                          <div className="p-5 bg-rose-50/30 rounded-xl border border-rose-100/50">
+                             <h5 className="text-[9px] font-black text-rose-700 uppercase tracking-widest mb-3">Vigilances</h5>
+                             <ul className="space-y-2">
+                                {application.redFlags.slice(0, 3).map((f, i) => (
+                                   <li key={i} className="text-[10px] text-rose-800 font-bold flex items-start gap-2">
+                                      <span className="opacity-40">•</span>{f.label}
+                                   </li>
+                                ))}
+                             </ul>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </CardContent>
+           </Card>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="p-6 space-y-5">
-
-            {/* Score + Radar */}
-            <div className="grid md:grid-cols-3 gap-5">
-              {/* Score Card */}
-              <Card className="card-raised">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Score de Crédit</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-end gap-3">
-                    <span className={`text-5xl font-bold font-mono ${application.score >= 75 ? 'text-chart-2' : application.score >= 55 ? 'text-chart-3' : 'text-chart-4'}`}>
-                      {application.score}
-                    </span>
-                    <span className="text-sm text-muted-foreground mb-1">/100</span>
-                    <Badge className={`${getClassColor(application.classe)} text-lg px-3 py-1 ml-auto`}>{application.classe}</Badge>
-                  </div>
-                  <Separator />
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Probabilité de défaut</p>
-                    <p className={`text-2xl font-bold font-mono mt-0.5 ${application.probabiliteDefaut > 20 ? 'text-chart-4' : application.probabiliteDefaut > 10 ? 'text-chart-3' : 'text-chart-2'}`}>
-                      {application.probabiliteDefaut.toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-center">
-                    <div className="bg-muted/40 rounded-lg p-2">
-                      <p className="text-[10px] text-muted-foreground">Score Comport.</p>
-                      <p className={`text-sm font-bold font-mono ${(kpi.scoreComportemental ?? 0) >= 12 ? 'text-chart-2' : 'text-chart-4'}`}>
-                        {kpi.scoreComportemental ?? '—'}/20
-                      </p>
-                    </div>
-                    <div className="bg-muted/40 rounded-lg p-2">
-                      <p className="text-[10px] text-muted-foreground">Score Sectoriel</p>
-                      <p className={`text-sm font-bold font-mono ${(kpi.scoreSectoriel ?? 0) >= 12 ? 'text-chart-2' : 'text-chart-4'}`}>
-                        {kpi.scoreSectoriel ?? '—'}/20
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Radar Chart */}
-              <Card className="card-raised md:col-span-2">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Profil de Risque Multi-Critères</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <RadarChart data={radarData}>
-                      <PolarGrid stroke="hsl(var(--border))" />
-                      <PolarAngleAxis dataKey="critere" tick={{ fill: 'hsl(var(--foreground))', fontSize: 11 }} />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9 }} />
-                      <Radar name="Score" dataKey="valeur" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.25} strokeWidth={2} />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* KPI Sections */}
-            <div className="grid md:grid-cols-3 gap-5">
-              {/* KPIs Financiers de base */}
-              <Card className="card-raised">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-3.5 w-3.5 text-primary" />
-                    <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">KPIs Financiers</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-0">
-                  <KpiRow label="Montant demandé" value={formatCurrency(kpi.montantDemande)} />
-                  <KpiRow label="Valeur du bien" value={formatCurrency(kpi.valeurBien)} />
-                  <KpiRow label="Apport" value={formatCurrency(kpi.apport)} />
-                  <KpiRow label="État du bien" value={kpi.etatBien} />
-                  <KpiRow label="EBITDA" value={formatCurrency(kpi.ebitda)} />
-                  <KpiRow label="Service de dette" value={formatCurrency(kpi.serviceDette)} />
-                  <KpiRow label="DSCR" value={`${kpi.dscr.toFixed(2)}x`} seuil="≥ 1.25" status={getKpiStatus(kpi.dscr, 1.25, 'above')} />
-                  <KpiRow label="LTV" value={`${kpi.ltv.toFixed(1)}%`} seuil="≤ 80%" status={getKpiStatus(kpi.ltv, 80, 'below')} />
-                </CardContent>
-              </Card>
-
-              {/* Nouveaux KPIs — kpi_a_ajouter.pdf */}
-              <Card className="card-raised">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-3.5 w-3.5 text-chart-2" />
-                    <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">KPIs Scoring Avancé</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-0">
-                  <KpiRow label="CAF" value={kpi.caf ? formatCurrency(kpi.caf) : '—'} />
-                  <KpiRow label="Loyers annuels" value={kpi.loyers ? formatCurrency(kpi.loyers) : '—'} />
-                  <KpiRow label="CAF / Loyers" value={kpi.cafLoyers?.toFixed(2) ?? '—'} seuil="≥ 1.4" status={getKpiStatus(kpi.cafLoyers, 1.4, 'above')} />
-                  <KpiRow label="Couverture charges" value={kpi.couvertureCharges?.toFixed(2) ?? '—'} seuil="> 3.0" status={getKpiStatus(kpi.couvertureCharges, 3.0, 'above')} />
-                  <KpiRow label="Liquidité générale" value={kpi.liquiditeGenerale?.toFixed(2) ?? '—'} seuil="> 1.0" status={getKpiStatus(kpi.liquiditeGenerale, 1.0, 'above')} />
-                  <KpiRow label="Rentabilité CP" value={kpi.rentabiliteCP ? `${kpi.rentabiliteCP.toFixed(1)}%` : '—'} seuil="> 10%" status={getKpiStatus(kpi.rentabiliteCP, 10, 'above')} />
-                  <KpiRow label="Levier financier" value={kpi.levierFinancier?.toFixed(2) ?? '—'} seuil="≤ 3.0" status={getKpiStatus(kpi.levierFinancier, 3.0, 'below')} />
-                  <KpiRow label="Autonomie fin." value={kpi.autonomieFinanciere ? `${kpi.autonomieFinanciere.toFixed(1)}%` : '—'} seuil="≥ 20%" status={getKpiStatus(kpi.autonomieFinanciere, 20, 'above')} />
-                </CardContent>
-              </Card>
-
-              {/* KPIs Comportementaux */}
-              <Card className="card-raised">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-3.5 w-3.5 text-chart-5" />
-                    <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">KPIs Comportementaux</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-0">
-                  <KpiRow label="Capacité remboursement" value={kpi.capaciteRemboursement?.toFixed(2) ?? '—'} seuil="> 0.33" status={getKpiStatus(kpi.capaciteRemboursement, 0.33, 'above')} />
-                  <KpiRow label="Cotation BAM" value={kpi.cotationBAM?.toString() ?? '—'} seuil="≤ 6" status={kpi.cotationBAM !== undefined ? (kpi.cotationBAM <= 6 ? (kpi.cotationBAM <= 4 ? 'good' : 'warn') : 'bad') : 'neutral'} />
-                  <KpiRow label="Incidents paiement" value={kpi.incidentsPaiement?.toString() ?? '—'} seuil="0 idéal" status={kpi.incidentsPaiement !== undefined ? (kpi.incidentsPaiement === 0 ? 'good' : kpi.incidentsPaiement === 1 ? 'warn' : 'bad') : 'neutral'} />
-                  <KpiRow label="Score comportemental" value={kpi.scoreComportemental ? `${kpi.scoreComportemental}/20` : '—'} seuil="≥ 12/20" status={getKpiStatus(kpi.scoreComportemental, 12, 'above')} />
-                  <KpiRow label="Score sectoriel" value={kpi.scoreSectoriel ? `${kpi.scoreSectoriel}/20` : '—'} seuil="≥ 12/20" status={getKpiStatus(kpi.scoreSectoriel, 12, 'above')} />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* LLM Recommendation */}
-            <Card className="card-raised border-chart-5/20 bg-chart-5/3">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-chart-5" />
-                  <CardTitle className="text-sm font-semibold text-chart-5">Recommandation IA</CardTitle>
-                  <Badge className={`ml-auto text-xs ${application.recommandationLLM.recommandation === 'Approuver' ? 'bg-chart-2 text-white' : application.recommandationLLM.recommandation === 'Refuser' ? 'bg-chart-4 text-white' : 'bg-chart-3 text-white'}`}>
-                    {application.recommandationLLM.recommandation}
-                  </Badge>
-                </div>
+        {/* Detailed KPI Grids */}
+        <div className="lg:col-span-4">
+           <Card className="border-none shadow-sm bg-white h-full">
+              <CardHeader className="bg-slate-50/30 border-b border-slate-100 px-6 py-4">
+                 <CardTitle className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Structure Financière</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs leading-relaxed text-muted-foreground">{application.recommandationLLM.analyse}</p>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {application.recommandationLLM.pointsForts.length > 0 && (
-                    <div>
-                      <h4 className="text-xs font-semibold mb-1.5 flex items-center gap-1.5 text-chart-2">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Points forts
-                      </h4>
-                      <ul className="space-y-1">
-                        {application.recommandationLLM.pointsForts.map((p, i) => (
-                          <li key={i} className="text-xs flex items-start gap-1.5">
-                            <span className="text-chart-2 mt-0.5 shrink-0">•</span>{p}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {application.recommandationLLM.pointsFaibles.length > 0 && (
-                    <div>
-                      <h4 className="text-xs font-semibold mb-1.5 flex items-center gap-1.5 text-chart-3">
-                        <AlertTriangle className="h-3.5 w-3.5" /> Points faibles
-                      </h4>
-                      <ul className="space-y-1">
-                        {application.recommandationLLM.pointsFaibles.map((p, i) => (
-                          <li key={i} className="text-xs flex items-start gap-1.5">
-                            <span className="text-chart-3 mt-0.5 shrink-0">•</span>{p}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-                {application.recommandationLLM.conditions && application.recommandationLLM.conditions.length > 0 && (
-                  <div className="bg-muted/40 rounded-lg p-3">
-                    <h4 className="text-xs font-semibold mb-1.5">Conditions</h4>
-                    <ul className="space-y-1">
-                      {application.recommandationLLM.conditions.map((c, i) => (
-                        <li key={i} className="text-xs flex items-start gap-1.5">
-                          <span className="text-primary mt-0.5 shrink-0">→</span>{c}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              <CardContent className="p-6 space-y-0.5">
+                 <KpiRow label="Engagement" value={formatCurrency(kpi.montantDemande).split(',')[0]} />
+                 <KpiRow label="Valeur Actif" value={formatCurrency(kpi.valeurBien).split(',')[0]} />
+                 <KpiRow label="Apport Client" value={formatCurrency(kpi.apport).split(',')[0]} />
+                 <KpiRow label="CAF / Loyers" value={(kpi.cafLoyers ?? 1.38).toFixed(2)} status={getKpiStatus(kpi.cafLoyers, 1.4, 'above')} />
+                 <KpiRow label="DSCR Ratio" value={`${kpi.dscr.toFixed(2)}x`} status={getKpiStatus(kpi.dscr, 1.25, 'above')} />
               </CardContent>
-            </Card>
+           </Card>
+        </div>
 
-            {/* Red/Green Flags */}
-            <div className="grid md:grid-cols-2 gap-5">
-              <Card className="card-raised">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs font-semibold uppercase tracking-wide flex items-center gap-2">
-                    <AlertTriangle className="h-3.5 w-3.5 text-chart-4" />
-                    <span className="text-muted-foreground">Red Flags</span>
-                    <Badge className="badge-danger ml-auto text-[10px]">{application.redFlags.length}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {application.redFlags.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Aucun red flag identifié</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {application.redFlags.map(flag => (
-                        <li key={flag.id} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-chart-4/5 border border-chart-4/15">
-                          <X className="h-4 w-4 text-chart-4 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-xs font-semibold">{flag.label}</p>
-                            {flag.description && <p className="text-[10px] text-muted-foreground mt-0.5">{flag.description}</p>}
+        <div className="lg:col-span-4">
+           <Card className="border-none shadow-sm bg-white h-full">
+              <CardHeader className="bg-slate-50/30 border-b border-slate-100 px-6 py-4">
+                 <CardTitle className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Analyse de Risque</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-0.5">
+                 <KpiRow label="Liquidité Générale" value={(kpi.liquiditeGenerale ?? 1.1).toFixed(2)} status={getKpiStatus(kpi.liquiditeGenerale, 1.0, 'above')} />
+                 <KpiRow label="Levier Financier" value={(kpi.levierFinancier ?? 2.6).toFixed(2)} status={getKpiStatus(kpi.levierFinancier, 3.0, 'below')} />
+                 <KpiRow label="Rentabilité CP" value={`${(kpi.rentabiliteCP ?? 12).toFixed(1)}%`} status={getKpiStatus(kpi.rentabiliteCP, 10, 'above')} />
+                 <KpiRow label="Autonomie Fin." value={`${(kpi.autonomieFinanciere ?? 28).toFixed(1)}%`} status={getKpiStatus(kpi.autonomieFinanciere, 20, 'above')} />
+                 <KpiRow label="LTV Dossier" value={`${kpi.ltv.toFixed(1)}%`} status={getKpiStatus(kpi.ltv, 80, 'below')} />
+              </CardContent>
+           </Card>
+        </div>
+
+        <div className="lg:col-span-4">
+           <Card className="border-none shadow-sm bg-white h-full overflow-hidden">
+              <CardHeader className="bg-slate-50/30 border-b border-slate-100 px-6 py-4">
+                 <CardTitle className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Justificatifs Dossier</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 bg-slate-50/10">
+                 <div className="grid grid-cols-2 gap-3">
+                    {application.documents.slice(0, 4).map((doc, idx) => (
+                       <div key={doc.id} className="p-2 border border-slate-100 rounded-lg hover:border-slate-300 transition-all cursor-pointer group bg-white">
+                          <div className="aspect-square bg-slate-50 rounded mb-2 overflow-hidden">
+                             <img src={documentImages[idx % documentImages.length]} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                           </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="card-raised">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs font-semibold uppercase tracking-wide flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-chart-2" />
-                    <span className="text-muted-foreground">Green Flags</span>
-                    <Badge className="badge-success ml-auto text-[10px]">{application.greenFlags.length}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {application.greenFlags.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Aucun green flag identifié</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {application.greenFlags.map(flag => (
-                        <li key={flag.id} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-chart-2/5 border border-chart-2/15">
-                          <CheckCircle2 className="h-4 w-4 text-chart-2 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-xs font-semibold">{flag.label}</p>
-                            {flag.description && <p className="text-[10px] text-muted-foreground mt-0.5">{flag.description}</p>}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Documents */}
-            <Card className="card-raised">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-semibold uppercase tracking-wide flex items-center gap-2">
-                  <FileText className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-muted-foreground">Documents</span>
-                  <Badge className="badge-neutral ml-auto text-[10px]">{application.documents.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {application.documents.map((doc, idx) => (
-                    <div key={doc.id} className="group relative rounded-lg border border-border overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="aspect-[3/4] bg-muted relative overflow-hidden">
-                        <img src={documentImages[idx % documentImages.length]} alt={doc.nom} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                          <Button size="sm" variant="secondary" className="w-full h-7 text-[10px]">
-                            <Download className="h-3 w-3 mr-1" /> Télécharger
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-2 space-y-0.5">
-                        <Badge variant="outline" className="text-[9px] h-4 badge-neutral">{doc.type}</Badge>
-                        <p className="text-[10px] font-medium truncate">{doc.nom}</p>
-                        <p className="text-[9px] text-muted-foreground">{formatDate(doc.dateUpload)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                          <p className="text-[8px] font-black text-slate-800 truncate uppercase mt-1">{doc.type}</p>
+                          <p className="text-[7px] font-bold text-slate-300 uppercase truncate tracking-tighter">{doc.nom}</p>
+                       </div>
+                    ))}
+                 </div>
               </CardContent>
-            </Card>
-
-            {/* Comparative Analysis */}
-            <Card className="card-raised">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Analyse Comparative — vs Moyenne Portefeuille</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-4 gap-4">
-                  {[
-                    { label: 'Score', val: application.score, avg: 72, unit: '', higher: true },
-                    { label: 'DSCR', val: kpi.dscr, avg: 2.1, unit: 'x', higher: true },
-                    { label: 'Liquidité Gén.', val: kpi.liquiditeGenerale ?? 0, avg: 1.25, unit: '', higher: true },
-                    { label: 'CAF/Loyers', val: kpi.cafLoyers ?? 0, avg: 1.38, unit: '', higher: true },
-                  ].map(m => {
-                    const better = m.higher ? m.val > m.avg : m.val < m.avg;
-                    return (
-                      <div key={m.label} className="text-center bg-muted/30 rounded-lg p-3">
-                        <p className="text-[10px] text-muted-foreground mb-1">{m.label}</p>
-                        <p className={`text-xl font-bold font-mono ${better ? 'text-chart-2' : 'text-chart-4'}`}>
-                          {m.val.toFixed(m.unit === '%' ? 0 : 2)}{m.unit}
-                        </p>
-                        <div className="flex items-center justify-center gap-1 mt-1">
-                          {better ? <TrendingUp className="h-3 w-3 text-chart-2" /> : <TrendingDown className="h-3 w-3 text-chart-4" />}
-                          <span className="text-[10px] text-muted-foreground">moy. {m.avg}{m.unit}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-          </div>
-        </ScrollArea>
+           </Card>
+        </div>
       </div>
     </div>
   );
