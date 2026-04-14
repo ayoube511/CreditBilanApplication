@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, FileText, CheckCircle, XCircle, Clock, DollarSign, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, Clock, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,8 @@ import { SectorPieChart, TimeSeriesChart } from '@/components/Charts';
 import { mockApplications, mockDashboardStats, mockSectorDistribution, mockTimeSeriesData } from '@/data/index';
 import { formatCurrency, formatDate, getClassColor, getStatusColor } from '@/lib/index';
 import { Link } from 'react-router-dom';
-import { ROUTE_PATHS } from '@/lib/index';
 
-interface StatCardProps {
+import { ROUTE_PATHS } from '@/lib/index';
   icon: React.ReactNode;
   label: string;
   value: string | number;

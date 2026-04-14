@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertTriangle, TrendingUp, TrendingDown, Target, ShieldCheck } from 'lucide-react';
 import { ScoreDistributionChart, SensitivityChart } from '@/components/Charts';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { Sector } from '@/lib/index';
 
 const tooltipStyle = {

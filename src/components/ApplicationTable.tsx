@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { mockApplications } from '@/data/index';
-import { formatCurrency, getClassColor, getStatusColor, type Segment, type Sector, type Status } from '@/lib/index';
+import { formatCurrency, getClassColor, getStatusColor } from '@/lib/index';
 
 interface ApplicationTableProps {
   onViewDetails: (id: string) => void;
@@ -34,7 +34,7 @@ export function ApplicationTable({ onViewDetails }: ApplicationTableProps) {
   };
 
   const filteredAndSortedApplications = useMemo(() => {
-    let filtered = mockApplications.filter((app) => {
+    const filtered = mockApplications.filter((app) => {
       const matchesSearch =
         searchQuery === '' ||
         app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
