@@ -166,11 +166,11 @@ export function ApplicationTable({ onViewDetails }: ApplicationTableProps) {
                        </span>
                     </td>
                     <td className="px-8 py-5 text-right">
-                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-[#565e74]">
-                             <Eye size={14} />
+                       <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm" className="h-7 px-3 text-[9px] font-black uppercase tracking-widest text-[#565e74] border-slate-200 hover:bg-slate-50 gap-2 transition-all">
+                             <Eye size={12} /> Détails
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-[#565e74]">
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-300 hover:text-slate-500">
                              <MoreVertical size={14} />
                           </Button>
                        </div>
