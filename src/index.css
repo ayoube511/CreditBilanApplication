@@ -1,0 +1,217 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+==========================================================================
+【AI HANDOVER NOTE】
+1. DESIGN PHILOSOPHY:
+   - Thème: Financial Dashboard Professionnel avec approche Neo-minimalism et Bento surfaces
+   - Ambiance: Confiance institutionnelle, précision analytique, clarté décisionnelle
+   - Inspiration: Interfaces fintech 2026 avec focus sur la hiérarchie visuelle des KPI et la lisibilité des données financières
+   - Rationale: Pour une plateforme de scoring crédit leasing, la confiance et la transparence sont primordiales. Le design adopte une approche modulaire (Bento) avec des cartes bien définies pour segmenter l'information (KPI, Red/Green flags, Recommandations LLM, Documents). L'utilisation de surfaces distinctes facilite la navigation cognitive dans des données complexes.
+
+2. TYPOGRAPHY:
+   - Sans: Inter - Police moderne, optimisée pour les interfaces financières, excellente lisibilité à toutes les tailles, particulièrement adaptée pour les tableaux de données et les KPI. Son design neutre inspire confiance et professionnalisme.
+   - Mono: JetBrains Mono - Utilisée pour les montants financiers (MAD), les scores numériques, les ratios (DSCR, LTV), et les identifiants de dossiers (ENT-XXX, PRO-XXX). Sa clarté garantit une lecture précise des chiffres critiques.
+
+3. COLOR SYSTEM:
+   - Brand: Bleu professionnel (Hue 220°) - Évoque la confiance, la stabilité financière, et l'autorité institutionnelle. Choix stratégique pour une plateforme de crédit.
+   - Mapping: --brand → --primary (navigation, actions principales), --accent (highlights, badges de score A), --ring (focus states)
+   - Sémantique:
+     * Success (Hue 150°): Green flags, approbations, classe A/B, DSCR sain
+     * Warning (Hue 45°): Alertes modérées, classe C/D, ratios limites
+     * Destructive (Hue 10°): Red flags, refus, classe E/F, incidents de paiement
+   - Accent violet (Hue 270°): Réservé aux insights LLM pour les distinguer visuellement des données brutes
+
+4. USAGE GUIDE:
+   - Layout: Dashboard full-width avec sidebar fixe (navigation), zone principale (table + filtres), et panel latéral détachable (analyse de dossier)
+   - Effets spéciaux:
+     * Cards: Ombres subtiles (shadow-sm) avec bordures fines pour définir les surfaces
+     * Badges de score: Pill-shaped avec code couleur (A=success, B=success-muted, C=warning, D=warning-dark, E/F=destructive)
+     * Hover states: Légère élévation (shadow-md) sur les rows de table et cards interactives
+   - Règles spécifiques:
+     * Montants financiers: Toujours en mono, alignés à droite, avec séparateurs de milliers
+     * Scores: Affichage grand format (text-4xl) avec classe en badge adjacent
+     * Red/Green flags: Listes avec icônes (✓/✗) et couleurs sémantiques fortes
+     * Recommandations LLM: Card avec fond accent-muted, icône AI distinctive, bordure accent
+     * Documents: Grille de miniatures avec overlay au hover (nom + actions)
+   - Responsive: Priorité desktop (analystes), mais mobile-friendly pour consultation rapide
+==========================================================================
+*/
+
+:root {
+  /* Typography */
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: JetBrains Mono, 'Courier New', monospace;
+  
+  /* Radius */
+  --radius: 0.75rem;
+
+  /* Core UI Tokens */
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.15 0.01 220);
+  --card: oklch(0.98 0.005 220);
+  --card-foreground: oklch(0.18 0.01 220);
+  --popover: oklch(0.99 0 0);
+  --popover-foreground: oklch(0.15 0.01 220);
+  --primary: oklch(0.42 0.15 220);
+  --primary-foreground: oklch(0.98 0.005 220);
+  --secondary: oklch(0.92 0.01 220);
+  --secondary-foreground: oklch(0.22 0.015 220);
+  --muted: oklch(0.95 0.005 220);
+  --muted-foreground: oklch(0.48 0.01 220);
+  --accent: oklch(0.52 0.18 270);
+  --accent-foreground: oklch(0.98 0.005 270);
+  --destructive: oklch(0.55 0.22 10);
+  --destructive-foreground: oklch(0.98 0.005 10);
+  --border: oklch(0.88 0.01 220);
+  --input: oklch(0.88 0.01 220);
+  --ring: oklch(0.42 0.15 220);
+  
+  /* Chart Tokens */
+  --chart-1: oklch(0.52 0.18 220);
+  --chart-2: oklch(0.58 0.2 150);
+  --chart-3: oklch(0.62 0.18 45);
+  --chart-4: oklch(0.55 0.22 10);
+  --chart-5: oklch(0.52 0.18 270);
+  
+  /* Sidebar Tokens */
+  --sidebar: oklch(0.22 0.02 220);
+  --sidebar-foreground: oklch(0.88 0.01 220);
+  --sidebar-primary: oklch(0.52 0.18 220);
+  --sidebar-primary-foreground: oklch(0.98 0.005 220);
+  --sidebar-accent: oklch(0.32 0.08 220);
+  --sidebar-accent-foreground: oklch(0.92 0.01 220);
+  --sidebar-border: oklch(0.28 0.03 220);
+  --sidebar-ring: oklch(0.52 0.18 220);
+}
+
+.dark {
+  --background: oklch(0.12 0.015 220);
+  --foreground: oklch(0.92 0.01 220);
+  --card: oklch(0.16 0.02 220);
+  --card-foreground: oklch(0.9 0.01 220);
+  --popover: oklch(0.14 0.018 220);
+  --popover-foreground: oklch(0.92 0.01 220);
+  --primary: oklch(0.58 0.2 220);
+  --primary-foreground: oklch(0.12 0.015 220);
+  --secondary: oklch(0.22 0.03 220);
+  --secondary-foreground: oklch(0.88 0.01 220);
+  --muted: oklch(0.2 0.025 220);
+  --muted-foreground: oklch(0.62 0.015 220);
+  --accent: oklch(0.62 0.22 270);
+  --accent-foreground: oklch(0.12 0.015 270);
+  --destructive: oklch(0.62 0.25 10);
+  --destructive-foreground: oklch(0.98 0.005 10);
+  --border: oklch(0.28 0.03 220);
+  --input: oklch(0.28 0.03 220);
+  --ring: oklch(0.58 0.2 220);
+  
+  /* Chart Tokens */
+  --chart-1: oklch(0.62 0.22 220);
+  --chart-2: oklch(0.65 0.24 150);
+  --chart-3: oklch(0.68 0.22 45);
+  --chart-4: oklch(0.62 0.25 10);
+  --chart-5: oklch(0.62 0.22 270);
+  
+  /* Sidebar Tokens */
+  --sidebar: oklch(0.1 0.012 220);
+  --sidebar-foreground: oklch(0.85 0.01 220);
+  --sidebar-primary: oklch(0.62 0.22 220);
+  --sidebar-primary-foreground: oklch(0.12 0.015 220);
+  --sidebar-accent: oklch(0.22 0.05 220);
+  --sidebar-accent-foreground: oklch(0.88 0.01 220);
+  --sidebar-border: oklch(0.18 0.02 220);
+  --sidebar-ring: oklch(0.62 0.22 220);
+}
+
+@theme inline {
+  /* Shadcn Core Mapping */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Charts Mapping */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar Mapping */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Typography */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans min-h-screen;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  code, pre {
+    @apply font-mono;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-primary;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40;
+  }
+}
