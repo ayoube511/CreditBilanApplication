@@ -81,7 +81,7 @@ export default function Statistics() {
   const recall = (confusionData[0].count / (confusionData[0].count + confusionData[2].count)) * 100;
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full px-6 py-8 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Statistiques Avancées</h1>

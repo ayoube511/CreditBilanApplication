@@ -70,7 +70,7 @@ export default function Dashboard() {
   const recent = mockApplications.slice(0, 4);
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-[1500px] mx-auto">
+    <div className="w-full px-6 py-8 space-y-8 animate-fade-in">
       
       {/* ── KPI Matrix ── */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
