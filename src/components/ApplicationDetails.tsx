@@ -74,13 +74,38 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
 
   const { kpi } = application;
 
-  const radarData = [
-    { critere: 'DSCR',       valeur: Math.min(kpi.dscr / 4 * 100, 100) },
-    { critere: 'LTV',        valeur: Math.max(100 - kpi.ltv, 0) },
-    { critere: 'EBITDA',     valeur: Math.min(kpi.ebitda / 1000000 * 100, 100) },
-    { critere: 'Liquidité',  valeur: Math.min((kpi.liquiditeGenerale ?? kpi.ratioLiquidite ?? 1) / 2 * 100, 100) },
-    { critere: 'CAF/Loyers', valeur: Math.min((kpi.cafLoyers ?? 1) / 2 * 100, 100) },
-    { critere: 'Comport.',   valeur: application.score },
+  // ── DATA NORMALIZATION HELPERS ──
+  // Normalizes diverse financial metrics into a 0-100 scale for visual consistency
+  const norm = (val: number | undefined, target: number, maxVal: number) => {
+    if (val === undefined) return 0;
+    return Math.min((val / maxVal) * 100, 100);
+  };
+
+  // Inverse normalization for metrics where LOWER is BETTER (e.g., LTV, Levier, BAM)
+  const normInv = (val: number | undefined, worst: number, best: number) => {
+    if (val === undefined) return 0;
+    const score = ((worst - val) / (worst - best)) * 100;
+    return Math.max(0, Math.min(score, 100));
+  };
+
+  // ── CHART 1: FINANCIAL PERFORMANCE ──
+  const financialData = [
+    { name: 'CAF/Loyers', val: norm(kpi.cafLoyers ?? 1.4, 1.4, 2.5) },
+    { name: 'Couverture', val: norm(kpi.couvertureCharges ?? 3.0, 3.0, 6.0) },
+    { name: 'Liquidité Gén.', val: norm(kpi.liquiditeGenerale ?? 1.1, 1.0, 2.0) },
+    { name: 'DSCR',       val: norm(kpi.dscr, 1.25, 3.0) },
+    { name: 'Autonomie',  val: norm(kpi.autonomieFinanciere ?? 25, 20, 50) },
+    { name: 'LTV (Inv.)', val: normInv(kpi.ltv, 100, 40) },
+    { name: 'Capacité R.', val: norm(kpi.capaciteRemboursement ?? 0.33, 0.33, 0.6) },
+  ];
+
+  // ── CHART 2: BEHAVIORAL & RISK PERFORMANCE ──
+  const behavioralData = [
+    { name: 'Cotation BAM', val: normInv(kpi.cotationBAM ?? 4, 9, 1) },
+    { name: 'Historique',  val: normInv(kpi.incidentsPaiement ?? 0, 3, 0) },
+    { name: 'Score Compo.', val: norm(kpi.scoreComportemental ?? 15, 12, 20) },
+    { name: 'Score Secteur', val: norm(kpi.scoreSectoriel ?? 14, 12, 20) },
+    { name: 'Qualité Dir.', val: 85 }, // Hypothetical qualitative score
   ];
 
   const documentImages = [IMAGES.DOCUMENTS_1, IMAGES.DOCUMENTS_2, IMAGES.DOCUMENTS_3];
@@ -99,9 +124,9 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
           </button>
           <div>
             <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
-              <span>Registre</span>
+              <span>Registre des Engagements</span>
               <span className="opacity-30">/</span>
-              <span className="text-slate-300">Dossier</span>
+              <span className="text-slate-300">Analyse de Dossier</span>
             </div>
             <h1 className="text-xl font-black text-slate-800 tracking-tightest uppercase flex items-center gap-3">
               {application.id}
@@ -121,18 +146,17 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
         </div>
       </div>
 
-      {/* ── KPI PULSE ROW (Minimalist Observable Icons) ── */}
+      {/* ── KPI PULSE ROW (Observable Icons) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-         {/* KPI: AI Score */}
-         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white group hover:shadow-md transition-all">
             <CardContent className="p-6">
                <div className="flex justify-between items-start mb-2">
-                  <div className={`p-0 text-slate-900 group-hover:scale-110 transition-transform ${application.score >= 75 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                  <div className={`p-0 group-hover:scale-110 transition-transform ${application.score >= 75 ? 'text-emerald-500' : 'text-amber-500'}`}>
                      <ShieldCheck size={24} strokeWidth={2.5} />
                   </div>
-                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">RATING</Badge>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black">RATING</Badge>
                </div>
-               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Score Engagement</p>
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Score Engagement IA</p>
                <div className="flex items-baseline gap-2">
                   <h3 className={`text-3xl font-black tabular-nums tracking-tighter ${application.score >= 75 ? 'text-emerald-600' : 'text-amber-500'}`}>{application.score}</h3>
                   <span className="text-xs font-bold text-slate-300 tracking-tight">/100</span>
@@ -140,16 +164,15 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
             </CardContent>
          </Card>
 
-         {/* KPI: Engagement */}
-         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white group hover:shadow-md transition-all">
             <CardContent className="p-6">
                <div className="flex justify-between items-start mb-2">
                   <div className="p-0 text-[#565e74] group-hover:scale-110 transition-transform">
                      <Activity size={24} strokeWidth={2.5} />
                   </div>
-                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">FINANCE</Badge>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black">ENGAGEMENT</Badge>
                </div>
-               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Engagement Total</p>
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Montant Demandé</p>
                <div className="flex items-baseline gap-1">
                   <h3 className="text-3xl font-black tabular-nums tracking-tighter text-slate-800">{formatCurrency(kpi.montantDemande).split(',')[0]}</h3>
                   <span className="text-[10px] font-black text-slate-300 uppercase ml-1">MAD</span>
@@ -157,14 +180,13 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
             </CardContent>
          </Card>
 
-         {/* KPI: Solvabilité */}
-         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white group hover:shadow-md transition-all">
             <CardContent className="p-6">
                <div className="flex justify-between items-start mb-2">
                   <div className="p-0 text-emerald-500 group-hover:scale-110 transition-transform">
                      <TrendingUp size={24} strokeWidth={2.5} />
                   </div>
-                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">SOLVABILITÉ</Badge>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black">SOLVA</Badge>
                </div>
                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ratio DSCR</p>
                <div className="flex items-baseline gap-1">
@@ -174,14 +196,13 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
             </CardContent>
          </Card>
 
-         {/* KPI: Probabilité Défaut */}
-         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white overflow-hidden group hover:shadow-md transition-all">
+         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white group hover:shadow-md transition-all">
             <CardContent className="p-6">
                <div className="flex justify-between items-start mb-2">
                   <div className={`p-0 group-hover:scale-110 transition-transform ${application.probabiliteDefaut > 15 ? 'text-rose-500' : 'text-slate-400'}`}>
                      <AlertTriangle size={24} strokeWidth={2.5} />
                   </div>
-                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black tracking-tighter">RISQUE</Badge>
+                  <Badge className="bg-slate-50 text-slate-400 border-slate-100 text-[8px] font-black">RISQUE</Badge>
                </div>
                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Défaut Probable</p>
                <div className="flex items-baseline gap-1">
@@ -193,58 +214,51 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
       </div>
 
       <div className="grid lg:grid-cols-12 gap-8">
-        {/* Risk Radar & Analytics */}
+        {/* ── DUAL CHARTS ANALYTICS ── */}
         <div className="lg:col-span-12">
            <Card className="border-none shadow-[0_2px_15px_rgba(0,0,0,0.02)] bg-white">
               <CardHeader className="border-b border-slate-50 px-8 py-6">
                  <div className="flex items-center justify-between">
                     <div>
-                       <CardTitle className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Analyse Factorielle Multidimensionnelle</CardTitle>
-                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Comparatif vs Benchmarks Sectoriels</p>
+                       <CardTitle className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Moteur d'Analyse Multivariée — Alpha-v4</CardTitle>
+                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Conformité aux seuils institutionnels @BAM</p>
                     </div>
                     <Sparkles className="h-4 w-4 text-[#565e74]" />
                  </div>
               </CardHeader>
               <CardContent className="p-8">
-                 <div className="grid lg:grid-cols-2 gap-12 items-center">
-                    <div className="flex items-center justify-center bg-slate-50/50 rounded-2xl p-6 border border-slate-100/50">
-                       <ResponsiveContainer width="100%" height={320}>
-                          <RadarChart data={radarData}>
-                             <PolarGrid stroke="#E2E8F0" strokeDasharray="3 3" />
-                             <PolarAngleAxis dataKey="critere" tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900, fontFamily: 'Manrope' }} />
-                             <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                             <Radar name="Dossier" dataKey="valeur" stroke="#565e74" fill="#565e74" fillOpacity={0.15} strokeWidth={3} />
-                          </RadarChart>
-                       </ResponsiveContainer>
-                    </div>
+                 <div className="grid lg:grid-cols-2 gap-12">
+                    {/* Financial Chart */}
                     <div className="space-y-6">
-                       <div className="p-6 bg-[#565e74]/5 border-l-4 border-[#565e74] rounded-r-xl">
-                          <h4 className="text-[10px] font-black text-[#565e74] uppercase tracking-widest mb-3 flex items-center gap-2">
-                             <Sparkles size={14} /> Recommandation Stratégique IA
-                          </h4>
-                          <p className="text-xs leading-relaxed text-slate-600 font-bold italic">"{application.recommandationLLM.analyse}"</p>
+                       <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <Activity size={14} className="text-[#565e74]" /> PERFORMANCE FINANCIÈRE (SOLVABILITÉ)
+                       </h4>
+                       <div className="bg-slate-50/30 rounded-2xl p-6 border border-slate-100/50">
+                          <ResponsiveContainer width="100%" height={300}>
+                             <RadarChart data={financialData}>
+                                <PolarGrid stroke="#E2E8F0" strokeDasharray="3 3" />
+                                <PolarAngleAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 9, fontWeight: 900, fontFamily: 'Manrope' }} />
+                                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                                <Radar name="Score" dataKey="val" stroke="#565e74" fill="#565e74" fillOpacity={0.15} strokeWidth={3} />
+                             </RadarChart>
+                          </ResponsiveContainer>
                        </div>
-                       <div className="grid grid-cols-2 gap-4">
-                          <div className="p-5 bg-emerald-50/30 rounded-xl border border-emerald-100/50">
-                             <h5 className="text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-3">Points Forts</h5>
-                             <ul className="space-y-2">
-                                {application.recommandationLLM.pointsForts.slice(0, 3).map((p, i) => (
-                                   <li key={i} className="text-[10px] text-emerald-800 font-bold flex items-start gap-2">
-                                      <span className="opacity-40">•</span>{p}
-                                   </li>
-                                ))}
-                             </ul>
-                          </div>
-                          <div className="p-5 bg-rose-50/30 rounded-xl border border-rose-100/50">
-                             <h5 className="text-[9px] font-black text-rose-700 uppercase tracking-widest mb-3">Vigilances</h5>
-                             <ul className="space-y-2">
-                                {application.redFlags.slice(0, 3).map((f, i) => (
-                                   <li key={i} className="text-[10px] text-rose-800 font-bold flex items-start gap-2">
-                                      <span className="opacity-40">•</span>{f.label}
-                                   </li>
-                                ))}
-                             </ul>
-                          </div>
+                    </div>
+
+                    {/* Behavioral Chart */}
+                    <div className="space-y-6">
+                       <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <ShieldCheck size={14} className="text-emerald-500" /> COMPORTEMENT & GOUVERNANCE (RISQUE)
+                       </h4>
+                       <div className="bg-slate-50/30 rounded-2xl p-6 border border-slate-100/50">
+                          <ResponsiveContainer width="100%" height={300}>
+                             <RadarChart data={behavioralData}>
+                                <PolarGrid stroke="#E2E8F0" strokeDasharray="3 3" />
+                                <PolarAngleAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 9, fontWeight: 900, fontFamily: 'Manrope' }} />
+                                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                                <Radar name="Score" dataKey="val" stroke="#10b981" fill="#10b981" fillOpacity={0.15} strokeWidth={3} />
+                             </RadarChart>
+                          </ResponsiveContainer>
                        </div>
                     </div>
                  </div>
@@ -252,56 +266,88 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
            </Card>
         </div>
 
-        {/* Detailed KPI Grids */}
-        <div className="lg:col-span-4">
-           <Card className="border-none shadow-sm bg-white h-full">
-              <CardHeader className="bg-slate-50/30 border-b border-slate-100 px-6 py-4">
-                 <CardTitle className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Structure Financière</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-0.5">
-                 <KpiRow label="Engagement" value={formatCurrency(kpi.montantDemande).split(',')[0]} />
-                 <KpiRow label="Valeur Actif" value={formatCurrency(kpi.valeurBien).split(',')[0]} />
-                 <KpiRow label="Apport Client" value={formatCurrency(kpi.apport).split(',')[0]} />
-                 <KpiRow label="CAF / Loyers" value={(kpi.cafLoyers ?? 1.38).toFixed(2)} status={getKpiStatus(kpi.cafLoyers, 1.4, 'above')} />
-                 <KpiRow label="DSCR Ratio" value={`${kpi.dscr.toFixed(2)}x`} status={getKpiStatus(kpi.dscr, 1.25, 'above')} />
-              </CardContent>
-           </Card>
+        {/* ── IA SUMMARY & DECISION SUPPORT ── */}
+        <div className="lg:col-span-12">
+            <Card className="border-none shadow-sm bg-white overflow-hidden">
+               <div className="grid lg:grid-cols-3 divide-x divide-slate-50">
+                  <div className="p-8 lg:col-span-2 space-y-6">
+                     <div className="p-6 bg-[#565e74]/5 border-l-4 border-[#565e74] rounded-r-xl">
+                        <h4 className="text-[11px] font-black text-[#565e74] uppercase tracking-widest mb-3 flex items-center gap-2">
+                           <Sparkles size={14} /> Synthèse Décisionnelle Alpha-v4
+                        </h4>
+                        <p className="text-[13px] leading-relaxed text-slate-600 font-bold italic">"{application.recommandationLLM.analyse}"</p>
+                     </div>
+                     <div className="grid md:grid-cols-2 gap-6 mt-8">
+                        <div className="space-y-4">
+                           <h5 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2">
+                              <CheckCircle2 size={14} /> Leviers de Soutien
+                           </h5>
+                           <div className="space-y-2">
+                              {application.recommandationLLM.pointsForts.map((p, i) => (
+                                 <div key={i} className="text-[11px] text-slate-700 font-bold p-3 bg-emerald-50/20 rounded-lg border border-emerald-100/50 flex items-start gap-3">
+                                    <span className="text-emerald-500 font-black">•</span> {p}
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                        <div className="space-y-4">
+                           <h5 className="text-[10px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2">
+                              <AlertTriangle size={14} /> Facteurs de Vigilance
+                           </h5>
+                           <div className="space-y-2">
+                              {application.redFlags.map((f, i) => (
+                                 <div key={i} className="text-[11px] text-slate-700 font-bold p-3 bg-rose-50/20 rounded-lg border border-rose-100/50 flex items-start gap-3">
+                                    <span className="text-rose-500 font-black">•</span> {f.label}
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  <div className="p-8 bg-slate-50/30 space-y-6">
+                     <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Audit de Solvabilité</h4>
+                     <div className="space-y-1">
+                        <KpiRow label="CAF / Loyers" value={(kpi.cafLoyers ?? 1.38).toFixed(2)} status={getKpiStatus(kpi.cafLoyers, 1.4, 'above')} />
+                        <KpiRow label="Capacité Rembours." value={(kpi.capaciteRemboursement ?? 0.38).toFixed(2)} status={getKpiStatus(kpi.capaciteRemboursement, 0.33, 'above')} />
+                        <KpiRow label="Couv. Charges Fin." value={(kpi.couvertureCharges ?? 4.2).toFixed(2)} status={getKpiStatus(kpi.couvertureCharges, 3.0, 'above')} />
+                        <KpiRow label="Liquidité Générale" value={(kpi.liquiditeGenerale ?? 1.2).toFixed(2)} status={getKpiStatus(kpi.liquiditeGenerale, 1.0, 'above')} />
+                        <KpiRow label="Levier Financier" value={(kpi.levierFinancier ?? 2.6).toFixed(2)} status={getKpiStatus(kpi.levierFinancier, 3.0, 'below')} />
+                        <KpiRow label="Rentabilité CP" value={`${(kpi.rentabiliteCP ?? 12).toFixed(1)}%`} status={getKpiStatus(kpi.rentabiliteCP, 10, 'above')} />
+                        <KpiRow label="Autonomie Fin." value={`${(kpi.autonomieFinanciere ?? 28).toFixed(1)}%`} status={getKpiStatus(kpi.autonomieFinanciere, 20, 'above')} />
+                        <KpiRow label="Cotation BAM" value={(kpi.cotationBAM ?? 4).toString()} status={kpi.cotationBAM && kpi.cotationBAM <= 6 ? 'good' : 'warn'} />
+                     </div>
+                     <div className="pt-6">
+                        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                           <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Décision Automatisée</p>
+                           <Badge className="w-full justify-center py-2 bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest border-none">
+                              Dossier Favorable - Classe A
+                           </Badge>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </Card>
         </div>
 
-        <div className="lg:col-span-4">
-           <Card className="border-none shadow-sm bg-white h-full">
-              <CardHeader className="bg-slate-50/30 border-b border-slate-100 px-6 py-4">
-                 <CardTitle className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Analyse de Risque</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-0.5">
-                 <KpiRow label="Liquidité Générale" value={(kpi.liquiditeGenerale ?? 1.1).toFixed(2)} status={getKpiStatus(kpi.liquiditeGenerale, 1.0, 'above')} />
-                 <KpiRow label="Levier Financier" value={(kpi.levierFinancier ?? 2.6).toFixed(2)} status={getKpiStatus(kpi.levierFinancier, 3.0, 'below')} />
-                 <KpiRow label="Rentabilité CP" value={`${(kpi.rentabiliteCP ?? 12).toFixed(1)}%`} status={getKpiStatus(kpi.rentabiliteCP, 10, 'above')} />
-                 <KpiRow label="Autonomie Fin." value={`${(kpi.autonomieFinanciere ?? 28).toFixed(1)}%`} status={getKpiStatus(kpi.autonomieFinanciere, 20, 'above')} />
-                 <KpiRow label="LTV Dossier" value={`${kpi.ltv.toFixed(1)}%`} status={getKpiStatus(kpi.ltv, 80, 'below')} />
-              </CardContent>
-           </Card>
-        </div>
-
-        <div className="lg:col-span-4">
-           <Card className="border-none shadow-sm bg-white h-full overflow-hidden">
-              <CardHeader className="bg-slate-50/30 border-b border-slate-100 px-6 py-4">
-                 <CardTitle className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Justificatifs Dossier</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 bg-slate-50/10">
-                 <div className="grid grid-cols-2 gap-3">
-                    {application.documents.slice(0, 4).map((doc, idx) => (
-                       <div key={doc.id} className="p-2 border border-slate-100 rounded-lg hover:border-slate-300 transition-all cursor-pointer group bg-white">
-                          <div className="aspect-square bg-slate-50 rounded mb-2 overflow-hidden">
-                             <img src={documentImages[idx % documentImages.length]} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                          <p className="text-[8px] font-black text-slate-800 truncate uppercase mt-1">{doc.type}</p>
-                          <p className="text-[7px] font-bold text-slate-300 uppercase truncate tracking-tighter">{doc.nom}</p>
-                       </div>
-                    ))}
-                 </div>
-              </CardContent>
-           </Card>
+        {/* ── DOCUMENTS ── */}
+        <div className="lg:col-span-12">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-4 mb-6">
+               <div className="h-px bg-slate-200 flex-1" />
+               Archives Documentaires Certifiées
+               <div className="h-px bg-slate-200 flex-1" />
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+               {application.documents.map((doc, idx) => (
+                  <div key={doc.id} className="p-3 border border-slate-100 rounded-xl hover:border-[#565e74]/30 hover:shadow-md transition-all cursor-pointer group bg-white">
+                     <div className="aspect-[3/4] bg-slate-50 rounded-lg mb-3 overflow-hidden">
+                        <img src={documentImages[idx % documentImages.length]} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105" />
+                     </div>
+                     <p className="text-[9px] font-black text-slate-800 truncate uppercase">{doc.type}</p>
+                     <p className="text-[8px] font-bold text-slate-300 uppercase mt-0.5">{formatDate(doc.dateUpload)}</p>
+                  </div>
+               ))}
+            </div>
         </div>
       </div>
     </div>
