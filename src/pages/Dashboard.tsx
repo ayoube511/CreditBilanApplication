@@ -132,7 +132,6 @@ export default function Dashboard() {
            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-white/50">
               <div>
                 <h3 className="text-md font-black text-slate-800 uppercase tracking-tight">Flux de Décisions Récents</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mise à jour Alpha-v4</p>
               </div>
               <Link to={ROUTE_PATHS.APPLICATIONS}>
                  <Button variant="ghost" className="text-[10px] font-bold uppercase tracking-widest text-slate-600 gap-2 hover:text-[#565e74]">

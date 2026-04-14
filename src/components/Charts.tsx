@@ -44,7 +44,7 @@ const tooltipProps = {
 };
 
 const axisStyle = {
-  tick: { fontSize: 10, fill: '#94A3B8', fontFamily: "'Manrope', sans-serif", fontWeight: 700 },
+  tick: { fontSize: 10, fill: '#94A3B8', fontFamily: 'Manrope', fontWeight: 700 },
   axisLine: false as const,
   tickLine: false as const,
 };
@@ -62,14 +62,13 @@ const renderActiveShape = (props: any) => {
 
   return (
     <g>
-      {/* Structural Center Info - Fixed positions to prevent overlap */}
-      <text x={cx} y={cy - 25} textAnchor="middle" fill="#94A3B8" fontSize={8} fontWeight={800} className="uppercase tracking-[0.2em] font-manrope">
+      <text x={cx} y={cy - 25} textAnchor="middle" fill="#94A3B8" fontSize={8} fontWeight={800} style={{ fontFamily: 'Manrope' }} className="uppercase tracking-[0.2em]">
         {displayName}
       </text>
-      <text x={cx} y={cy + 5} textAnchor="middle" fill="#1E293B" fontSize={24} fontWeight={900} className="font-manrope">
+      <text x={cx} y={cy + 5} textAnchor="middle" fill="#1E293B" fontSize={24} fontWeight={900} style={{ fontFamily: 'Manrope' }}>
         {value}
       </text>
-      <text x={cx} y={cy + 25} textAnchor="middle" fill={fill} fontSize={9} fontWeight={800} className="uppercase tracking-widest font-manrope">
+      <text x={cx} y={cy + 25} textAnchor="middle" fill={fill} fontSize={9} fontWeight={800} style={{ fontFamily: 'Manrope' }} className="uppercase tracking-widest">
         {(percent * 100).toFixed(1)}% PART
       </text>
       

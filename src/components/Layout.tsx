@@ -151,15 +151,6 @@ export function Layout({ children }: LayoutProps) {
       <main className="flex-1 p-8">
         {children}
       </main>
-
-      {/* Minimal Footer */}
-      <footer className="py-4 px-8 border-t border-slate-100 flex justify-between items-center bg-white/50">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">© 2026 CapitalFlow Ecosystem</p>
-        <div className="flex items-center gap-2">
-           <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full" />
-           <p className="text-[9px] font-bold text-slate-400 uppercase">Moteur Alpha-v4.2 Opérationnel</p>
-        </div>
-      </footer>
     </div>
   );
 }
