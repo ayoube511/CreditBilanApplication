@@ -99,4 +99,6 @@ Thumbs.db
 
 # --- Uploaded Files ---
 uploaded_files/
+read_pdf.cjs
+read_pdf.js
 
