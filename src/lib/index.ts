@@ -20,6 +20,19 @@ export interface FinancialKPI {
   dscr: number;
   ltv: number;
   ratioLiquidite?: number;
+  caf?: number;                    
+  loyers?: number;                 
+  cafLoyers?: number;              
+  couvertureCharges?: number;      
+  liquiditeGenerale?: number;      
+  rentabiliteCP?: number;         
+  levierFinancier?: number;        
+  autonomieFinanciere?: number;    
+  capaciteRemboursement?: number;  
+  cotationBAM?: number;            
+  incidentsPaiement?: number;      
+  scoreComportemental?: number;    
+  scoreSectoriel?: number;        
 }
 
 export interface Flag {
