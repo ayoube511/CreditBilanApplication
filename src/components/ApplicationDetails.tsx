@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { mockApplications } from '@/data/index';
 import { formatCurrency, formatDate, getClassColor, getStatusColor } from '@/lib/index';
 import { IMAGES } from '@/assets/images';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface ApplicationDetailsProps {
   applicationId: string;
@@ -88,25 +88,54 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
     return Math.max(0, Math.min(score, 100));
   };
 
-  // ── CHART 1: FINANCIAL PERFORMANCE ──
+  // ── CHART DATA PREPARATION ──
   const financialData = [
-    { name: 'CAF/Loyers', val: norm(kpi.cafLoyers ?? 1.4, 1.4, 2.5) },
-    { name: 'Couverture', val: norm(kpi.couvertureCharges ?? 3.0, 3.0, 6.0) },
-    { name: 'Liquidité Gén.', val: norm(kpi.liquiditeGenerale ?? 1.1, 1.0, 2.0) },
-    { name: 'DSCR',       val: norm(kpi.dscr, 1.25, 3.0) },
-    { name: 'Autonomie',  val: norm(kpi.autonomieFinanciere ?? 25, 20, 50) },
-    { name: 'LTV (Inv.)', val: normInv(kpi.ltv, 100, 40) },
-    { name: 'Capacité R.', val: norm(kpi.capaciteRemboursement ?? 0.33, 0.33, 0.6) },
+    { name: 'CAF/Loyers', val: norm(kpi.cafLoyers, 1.4, 2.5), raw: kpi.cafLoyers?.toFixed(2), target: '≥ 1.4', formula: 'CAF ÷ Loyers' },
+    { name: 'Couverture', val: norm(kpi.couvertureCharges, 3.0, 6.0), raw: kpi.couvertureCharges?.toFixed(2), target: '> 3.0', formula: 'EBE ÷ Charg. Fin' },
+    { name: 'Liquidité Générale', val: norm(kpi.liquiditeGenerale, 1.0, 2.0), raw: kpi.liquiditeGenerale?.toFixed(2), target: '> 1.0', formula: 'Actif ÷ Passif' },
+    { name: 'DSCR',       val: norm(kpi.dscr, 1.25, 3.0), raw: kpi.dscr.toFixed(2), target: '> 1.25', formula: 'CAF ÷ Serv. Dette' },
+    { name: 'Autonomie',  val: norm(kpi.autonomieFinanciere, 20, 50), raw: `${kpi.autonomieFinanciere?.toFixed(1)}%`, target: '≥ 20%', formula: 'CP ÷ Passif' },
+    { name: 'LTV (Inv.)', val: normInv(kpi.ltv, 100, 40), raw: `${kpi.ltv.toFixed(1)}%`, target: '≤ 80%', formula: 'Dette ÷ Actif' },
+    { name: 'Capacité R.', val: norm(kpi.capaciteRemboursement, 0.33, 0.6), raw: kpi.capaciteRemboursement?.toFixed(2), target: '> 0.33', formula: 'CAF ÷ Dettes Tot' },
   ];
 
-  // ── CHART 2: BEHAVIORAL & RISK PERFORMANCE ──
   const behavioralData = [
-    { name: 'Cotation BAM', val: normInv(kpi.cotationBAM ?? 4, 9, 1) },
-    { name: 'Historique',  val: normInv(kpi.incidentsPaiement ?? 0, 3, 0) },
-    { name: 'Score Compo.', val: norm(kpi.scoreComportemental ?? 15, 12, 20) },
-    { name: 'Score Secteur', val: norm(kpi.scoreSectoriel ?? 14, 12, 20) },
-    { name: 'Qualité Dir.', val: 85 }, // Hypothetical qualitative score
+    { name: 'Cotation BAM', val: normInv(kpi.cotationBAM, 9, 1), raw: kpi.cotationBAM?.toString(), target: '≤ 6', formula: 'Risque Central' },
+    { name: 'Historique',  val: normInv(kpi.incidentsPaiement, 3, 0), raw: kpi.incidentsPaiement?.toString(), target: '0 - 1', formula: 'Défauts 24m' },
+    { name: 'Score Compo.', val: norm(kpi.scoreComportemental, 12, 20), raw: `${kpi.scoreComportemental}/20`, target: '≥ 12/20', formula: 'Note Agrégée' },
+    { name: 'Score Secteur', val: norm(kpi.scoreSectoriel, 12, 20), raw: `${kpi.scoreSectoriel}/20`, target: '≥ 12/20', formula: 'Grille Sectorielle' },
+    { name: 'Qualité Dir.', val: 85, raw: 'Positive', target: 'Positive', formula: 'Méthode 5C' },
   ];
+
+  // ── CUSTOM TOOLTIP COMPONENT ──
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg shadow-xl animate-in fade-in zoom-in-95 duration-200 z-50 min-w-[200px]">
+          <div className="flex justify-between items-center mb-2 border-b border-slate-800 pb-1">
+             <p className="text-[10px] font-black text-white uppercase tracking-widest">{data.name}</p>
+             <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter bg-slate-800 px-1.5 py-0.5 rounded">{data.formula}</span>
+          </div>
+          <div className="space-y-1">
+             <div className="flex justify-between gap-4">
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Valeur Réelle</span>
+                <span className="text-[10px] font-black text-emerald-400 tabular-nums">{data.raw}</span>
+             </div>
+             <div className="flex justify-between gap-4">
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Seuil Institutionnel</span>
+                <span className="text-[10px] font-black text-slate-300 tabular-nums">{data.target}</span>
+             </div>
+             <div className="flex justify-between gap-4 pt-1 border-t border-slate-800/50">
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Score Normalisé</span>
+                <span className="text-[10px] font-black text-white tabular-nums">{Math.round(data.val)}/100</span>
+             </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   const documentImages = [IMAGES.DOCUMENTS_1, IMAGES.DOCUMENTS_2, IMAGES.DOCUMENTS_3];
 
@@ -220,8 +249,7 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
               <CardHeader className="border-b border-slate-50 px-8 py-6">
                  <div className="flex items-center justify-between">
                     <div>
-                       <CardTitle className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Moteur d'Analyse Multivariée — Alpha-v4</CardTitle>
-                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Conformité aux seuils institutionnels @BAM</p>
+                       <CardTitle className="text-[14px] font-black text-slate-800 uppercase tracking-widest">Analyses d'application !</CardTitle>
                     </div>
                     <Sparkles className="h-4 w-4 text-[#565e74]" />
                  </div>
@@ -240,6 +268,7 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
                                 <PolarAngleAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 9, fontWeight: 900, fontFamily: 'Manrope' }} />
                                 <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Radar name="Score" dataKey="val" stroke="#565e74" fill="#565e74" fillOpacity={0.15} strokeWidth={3} />
+                                <Tooltip content={<CustomTooltip />} />
                              </RadarChart>
                           </ResponsiveContainer>
                        </div>
@@ -257,6 +286,7 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
                                 <PolarAngleAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 9, fontWeight: 900, fontFamily: 'Manrope' }} />
                                 <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Radar name="Score" dataKey="val" stroke="#10b981" fill="#10b981" fillOpacity={0.15} strokeWidth={3} />
+                                <Tooltip content={<CustomTooltip />} />
                              </RadarChart>
                           </ResponsiveContainer>
                        </div>
