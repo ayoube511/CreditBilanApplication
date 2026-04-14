@@ -85,10 +85,9 @@ export default function Dashboard() {
         
         {/* Activity Flux */}
         <div className="col-span-12 lg:col-span-8 bg-white border border-slate-200/60 rounded-lg p-7 shadow-sm">
-           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-tight">Évolution de l'Octroi</h3>
-                <p className="text-xs text-slate-500 mt-1">Flux Alpha-v4 vs Engagement Réel — 30 Jours</p>
               </div>
               <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-100">
                  {['Détail', 'Hebdo', 'Mois'].map((v, i) => (
@@ -97,7 +96,7 @@ export default function Dashboard() {
               </div>
            </div>
 
-           <div className="h-72 w-full pt-4">
+           <div className="h-72 w-full">
               <TimeSeriesChart data={mockTimeSeriesData} />
            </div>
         </div>
