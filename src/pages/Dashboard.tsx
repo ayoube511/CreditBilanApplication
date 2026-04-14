@@ -77,12 +77,12 @@ export default function Dashboard() {
     <div className="space-y-8 animate-fade-in max-w-[1500px] mx-auto">
       
       {/* ── Action Bar ── */}
-      <div className="flex justify-end gap-4">
-        <Button variant="outline" className="h-[42px] px-6 rounded-lg text-slate-900 font-bold text-[10px] uppercase tracking-widest gap-2 bg-white border-slate-200">
-          <Share size={14} /> Reporter
+      <div className="flex justify-end gap-3 pb-2">
+        <Button variant="outline" className="h-11 px-6 bg-white border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-[0.15em] hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 shadow-sm transition-all rounded-lg">
+          <Share size={14} className="mr-2" /> Reporter
         </Button>
-        <Button className="h-[42px] px-8 rounded-lg bg-[#565e74] text-white font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg hover:bg-[#444a5c]">
-          <Zap size={14} fill="currentColor" /> Nouveau Flux
+        <Button className="h-11 px-8 bg-[#565e74] border border-[#4a5165] text-white font-bold text-[10px] uppercase tracking-[0.2em] shadow-[0_4px_12px_rgba(86,94,116,0.2)] hover:bg-[#4a5165] hover:shadow-lg transform active:scale-[0.98] transition-all rounded-lg">
+          <Zap size={14} className="mr-2" fill="currentColor" /> Nouveau Flux
         </Button>
       </div>
 
@@ -116,24 +116,12 @@ export default function Dashboard() {
            </div>
         </div>
 
-        {/* Diagnostic & Pie (RESTORING CIRCULAR CHART) */}
+        {/* Diagnostic & Pie */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
-           <div className="bg-white border border-slate-200/60 rounded-lg p-7 shadow-sm">
-              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Répartition Sectorielle</h4>
-              <div className="h-64 w-full">
+           <div className="bg-white border border-slate-200/60 rounded-lg p-7 shadow-sm h-full flex flex-col">
+              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-10">Répartition Sectorielle</h4>
+              <div className="flex-1 min-h-[280px] w-full">
                  <SectorPieChart data={mockSectorDistribution} />
-              </div>
-           </div>
-
-           <div className="bg-[#565e74] text-white p-7 rounded-lg relative overflow-hidden group shadow-lg">
-              <div className="relative z-10">
-                 <div className="flex items-center gap-2 mb-4">
-                    <Zap size={14} className="text-white/80" fill="currentColor" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Alpha Score Insight</p>
-                 </div>
-                 <p className="text-xs font-medium text-white/70 leading-relaxed">
-                    Le secteur industriel présente une résilience accrue de **12%**. Le moteur a ajusté les seuils pour les PME.
-                 </p>
               </div>
            </div>
         </div>
