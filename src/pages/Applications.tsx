@@ -48,28 +48,27 @@ export default function Applications() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-background">
-      <div className="w-full px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Demandes de Crédit</h1>
-            <p className="text-muted-foreground">Gérez et analysez toutes les demandes de crédit leasing</p>
-          </div>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              Filtres
-            </Button>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Créer un dossier
-            </Button>
-          </div>
+    <div className="w-full px-6 py-8 space-y-8 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-sm font-black text-slate-800 uppercase tracking-tight">Registre des Engagements</h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Plateforme de Gestion Crédit Leasing</p>
         </div>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="h-10 px-5 border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-600 gap-2 hover:bg-slate-50 transition-all"
+          >
+            <Filter className="h-3.5 w-3.5" />
+            Paramètres d'Affichage
+          </Button>
+          <Button className="h-10 px-6 bg-[#565e74] hover:bg-[#444a5c] text-white text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm gap-2">
+            <Plus className="h-3.5 w-3.5" />
+            Nouveau Flux
+          </Button>
+        </div>
+      </div>
 
         <div className="flex gap-6">
           {showFilters && (
@@ -211,7 +210,6 @@ export default function Applications() {
             <ApplicationTable onViewDetails={handleViewDetails} />
           </div>
         </div>
-      </div>
 
       <Sheet open={!!selectedApplicationId} onOpenChange={(open) => !open && handleCloseDetails()}>
         <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
