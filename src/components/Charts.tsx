@@ -34,7 +34,7 @@ const tooltipProps = {
     borderRadius: '10px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
     padding: '10px 14px',
-    fontFamily: "'Outfit', sans-serif",
+    fontFamily: "'Manrope', sans-serif",
     fontSize: '12px',
     color: '#374151',
   },
@@ -42,7 +42,7 @@ const tooltipProps = {
 };
 
 const axisStyle = {
-  tick: { fontSize: 11, fill: T.textMuted, fontFamily: "'Outfit', sans-serif" },
+  tick: { fontSize: 11, fill: T.textMuted, fontFamily: "'Manrope', sans-serif" },
   axisLine: false as const,
   tickLine: false as const,
 };
@@ -100,12 +100,12 @@ export function SectorPieChart({ data }: DonutProps) {
           {total}
         </text>
         <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle"
-          fontSize={10} fill={T.textMuted} fontFamily="'Outfit', sans-serif">
+          fontSize={10} fill={T.textMuted} fontFamily="'Manrope', sans-serif">
           dossiers
         </text>
         <Tooltip content={<CustomTooltip />} />
         <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={7}
-          wrapperStyle={{ fontSize: '11px', paddingTop: '10px', fontFamily: "'Outfit', sans-serif" }} />
+          wrapperStyle={{ fontSize: '11px', paddingTop: '10px', fontFamily: "'Manrope', sans-serif" }} />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -140,7 +140,7 @@ export function TimeSeriesChart({ data }: AreaProps) {
         <XAxis dataKey="date" {...axisStyle} />
         <YAxis {...axisStyle} />
         <Tooltip {...tooltipProps} />
-        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px', fontFamily: "'Outfit', sans-serif" }} iconType="circle" iconSize={7} />
+        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px', fontFamily: "'Manrope', sans-serif" }} iconType="circle" iconSize={7} />
         <Area type="monotone" dataKey="demandes" name="Demandes" stroke={T.navy} strokeWidth={2}
           fill="url(#gDemandes)" dot={{ r: 3.5, fill: T.navy, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }}
           animationDuration={800} animationEasing="ease-out" />
@@ -202,7 +202,7 @@ export function SensitivityChart({ data }: SensitivityProps) {
         <CartesianGrid strokeDasharray="3 3" stroke={T.border} strokeOpacity={0.7} horizontal={false} />
         <XAxis type="number" domain={[0, 0.5]} tickFormatter={v => `${(v * 100).toFixed(0)}%`} {...axisStyle} />
         <YAxis type="category" dataKey="variable" width={115} {...axisStyle}
-          tick={{ fontSize: 11, fill: T.text, fontFamily: "'Outfit', sans-serif" }} />
+          tick={{ fontSize: 11, fill: T.text, fontFamily: "'Manrope', sans-serif" }} />
         <Tooltip {...tooltipProps} formatter={(v: number) => [`${(v * 100).toFixed(1)}%`, 'Impact']} />
         <Bar dataKey="impact" radius={[0, 5, 5, 0]} animationDuration={700} animationEasing="ease-out">
           {data.map((e, i) => <Cell key={i} fill={e.color} />)}
@@ -227,7 +227,7 @@ export function FinancialRadarChart({ data, color = T.navy, label = 'Score' }: R
       <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
         <PolarGrid stroke={T.border} strokeOpacity={0.8} />
         <PolarAngleAxis dataKey="critere"
-          tick={{ fontSize: 10, fill: T.text, fontFamily: "'Outfit', sans-serif", fontWeight: 500 }} />
+          tick={{ fontSize: 10, fill: T.text, fontFamily: "'Manrope', sans-serif", fontWeight: 500 }} />
         <PolarRadiusAxis angle={90} domain={[0, 100]}
           tick={{ fontSize: 9, fill: T.textMuted }} tickCount={4} />
         {data[0]?.seuil !== undefined && (
@@ -237,7 +237,7 @@ export function FinancialRadarChart({ data, color = T.navy, label = 'Score' }: R
         <Radar name={label} dataKey="valeur" stroke={color} fill={color} fillOpacity={0.18}
           strokeWidth={2} dot={{ r: 3, fill: color, strokeWidth: 0 }} />
         <Tooltip {...tooltipProps} formatter={(v: number) => [`${v.toFixed(0)}`, '']} />
-        <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif" }} iconType="circle" iconSize={7} />
+        <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Manrope', sans-serif" }} iconType="circle" iconSize={7} />
       </RadarChart>
     </ResponsiveContainer>
   );
@@ -252,7 +252,7 @@ export function BehavioralRadarChart({ data }: RadarProps) {
       <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
         <PolarGrid stroke={T.border} strokeOpacity={0.8} />
         <PolarAngleAxis dataKey="critere"
-          tick={{ fontSize: 10, fill: T.text, fontFamily: "'Outfit', sans-serif", fontWeight: 500 }} />
+          tick={{ fontSize: 10, fill: T.text, fontFamily: "'Manrope', sans-serif", fontWeight: 500 }} />
         <PolarRadiusAxis angle={90} domain={[0, 100]}
           tick={{ fontSize: 9, fill: T.textMuted }} tickCount={4} />
         <Radar name="Score" dataKey="valeur" stroke={T.violet} fill={T.violet} fillOpacity={0.18}
@@ -300,7 +300,7 @@ export function GaugeChart({ value, max, label, color, unit = '', threshold }: G
           </p>
         </div>
       </div>
-      <p className="text-[10px] mt-1 text-center" style={{ color: T.textMuted, fontFamily: "'Outfit', sans-serif" }}>{label}</p>
+      <p className="text-[10px] mt-1 text-center" style={{ color: T.textMuted, fontFamily: "'Manrope', sans-serif" }}>{label}</p>
     </div>
   );
 }
@@ -323,7 +323,7 @@ export function PortfolioChart({ data }: PortfolioProps) {
         <YAxis yAxisId="r" orientation="right" {...axisStyle} />
         <Tooltip {...tooltipProps}
           formatter={(v: number, name: string) => [name === 'Montant (MAD)' ? `${fmt(v)} MAD` : v, name]} />
-        <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif" }} iconType="circle" iconSize={7} />
+        <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Manrope', sans-serif" }} iconType="circle" iconSize={7} />
         <Bar yAxisId="l" dataKey="montant" name="Montant (MAD)" fill={T.navy} radius={[5,5,0,0]} animationDuration={700} />
         <Bar yAxisId="r" dataKey="count" name="Nb dossiers" fill={T.emerald} radius={[5,5,0,0]} animationDuration={800} />
       </BarChart>
