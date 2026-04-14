@@ -296,38 +296,61 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
            </Card>
         </div>
 
-        {/* ── IA SUMMARY & DECISION SUPPORT ── */}
+        {/* ── IA EXECUTIVE SYNTHESIS (AUGMENTED DECISION CENTER) ── */}
         <div className="lg:col-span-12">
-            <Card className="border-none shadow-sm bg-white overflow-hidden">
-               <div className="grid lg:grid-cols-3 divide-x divide-slate-50">
-                  <div className="p-8 lg:col-span-2 space-y-6">
-                     <div className="p-6 bg-[#565e74]/5 border-l-4 border-[#565e74] rounded-r-xl">
-                        <h4 className="text-[11px] font-black text-[#565e74] uppercase tracking-widest mb-3 flex items-center gap-2">
-                           <Sparkles size={14} /> Synthèse Décisionnelle Alpha-v4
-                        </h4>
-                        <p className="text-[13px] leading-relaxed text-slate-600 font-bold italic">"{application.recommandationLLM.analyse}"</p>
+            <Card className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.04)] bg-white overflow-hidden">
+               <div className="grid lg:grid-cols-3 divide-x divide-slate-100">
+                  
+                  {/* Left & Middle: Narrative & Strategic Metrics */}
+                  <div className="p-8 lg:col-span-2 space-y-8">
+                     
+                     {/* Glass Narrative Block */}
+                     <div className="relative p-7 rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-100 overflow-hidden group">
+                        <div className="relative flex justify-between items-start mb-4">
+                           <div className="flex items-center gap-3">
+                              <Sparkles size={18} className="text-[#565e74]" />
+                              <h4 className="text-[12px] font-black text-[#565e74] uppercase tracking-[0.15em]">Synthèse Stratégique</h4>
+                           </div>
+                        </div>
+                        <p className="text-[15px] leading-relaxed text-slate-700 font-bold leading-snug">
+                           "{application.recommandationLLM.analyse}"
+                        </p>
                      </div>
-                     <div className="grid md:grid-cols-2 gap-6 mt-8">
-                        <div className="space-y-4">
-                           <h5 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2">
-                              <CheckCircle2 size={14} /> Leviers de Soutien
-                           </h5>
-                           <div className="space-y-2">
+
+                     {/* Strategic Pillars & Vigilance Grid */}
+                     <div className="grid md:grid-cols-2 gap-8 mt-10">
+                        {/* Pillars of Support */}
+                        <div className="space-y-5">
+                           <div className="flex items-center gap-3 px-1">
+                              <CheckCircle2 size={16} className="text-emerald-500" />
+                              <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Piliers de Soutien</h5>
+                           </div>
+                           <div className="space-y-3">
                               {application.recommandationLLM.pointsForts.map((p, i) => (
-                                 <div key={i} className="text-[11px] text-slate-700 font-bold p-3 bg-emerald-50/20 rounded-lg border border-emerald-100/50 flex items-start gap-3">
-                                    <span className="text-emerald-500 font-black">•</span> {p}
+                                 <div key={i} className="group relative p-4 bg-emerald-50/10 border border-emerald-100/30 rounded-xl hover:bg-emerald-50/30 hover:border-emerald-200/50 transition-all flex items-start gap-3">
+                                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                    <span className="text-[11px] text-slate-700 font-bold leading-tight">{p}</span>
                                  </div>
                               ))}
                            </div>
                         </div>
-                        <div className="space-y-4">
-                           <h5 className="text-[10px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2">
-                              <AlertTriangle size={14} /> Facteurs de Vigilance
-                           </h5>
-                           <div className="space-y-2">
+
+                        {/* Vigilance Markers */}
+                        <div className="space-y-5">
+                           <div className="flex items-center gap-3 px-1">
+                              <AlertTriangle size={16} className="text-rose-500" />
+                              <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Vigilance & Risques</h5>
+                           </div>
+                           <div className="space-y-3">
                               {application.redFlags.map((f, i) => (
-                                 <div key={i} className="text-[11px] text-slate-700 font-bold p-3 bg-rose-50/20 rounded-lg border border-rose-100/50 flex items-start gap-3">
-                                    <span className="text-rose-500 font-black">•</span> {f.label}
+                                 <div key={i} className="p-4 bg-rose-50/10 border border-rose-100/30 rounded-xl hover:bg-rose-50/30 transition-all flex items-start gap-4">
+                                    <div className="p-1.5 bg-rose-100/50 rounded-lg text-rose-600">
+                                       <Activity size={12} strokeWidth={3} />
+                                    </div>
+                                    <div className="space-y-1">
+                                       <p className="text-[10px] font-black text-rose-800 uppercase tracking-tight">{f.label}</p>
+                                       <p className="text-[9px] font-bold text-slate-400 uppercase leading-none">Indice de sévérité : Modéré</p>
+                                    </div>
                                  </div>
                               ))}
                            </div>
@@ -335,27 +358,41 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
                      </div>
                   </div>
                   
-                  <div className="p-8 bg-slate-50/30 space-y-6">
-                     <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Audit de Solvabilité</h4>
-                     <div className="space-y-1">
-                        <KpiRow label="CAF / Loyers" value={(kpi.cafLoyers ?? 1.38).toFixed(2)} status={getKpiStatus(kpi.cafLoyers, 1.4, 'above')} />
-                        <KpiRow label="Capacité Rembours." value={(kpi.capaciteRemboursement ?? 0.38).toFixed(2)} status={getKpiStatus(kpi.capaciteRemboursement, 0.33, 'above')} />
-                        <KpiRow label="Couv. Charges Fin." value={(kpi.couvertureCharges ?? 4.2).toFixed(2)} status={getKpiStatus(kpi.couvertureCharges, 3.0, 'above')} />
-                        <KpiRow label="Liquidité Générale" value={(kpi.liquiditeGenerale ?? 1.2).toFixed(2)} status={getKpiStatus(kpi.liquiditeGenerale, 1.0, 'above')} />
-                        <KpiRow label="Levier Financier" value={(kpi.levierFinancier ?? 2.6).toFixed(2)} status={getKpiStatus(kpi.levierFinancier, 3.0, 'below')} />
-                        <KpiRow label="Rentabilité CP" value={`${(kpi.rentabiliteCP ?? 12).toFixed(1)}%`} status={getKpiStatus(kpi.rentabiliteCP, 10, 'above')} />
-                        <KpiRow label="Autonomie Fin." value={`${(kpi.autonomieFinanciere ?? 28).toFixed(1)}%`} status={getKpiStatus(kpi.autonomieFinanciere, 20, 'above')} />
-                        <KpiRow label="Cotation BAM" value={(kpi.cotationBAM ?? 4).toString()} status={kpi.cotationBAM && kpi.cotationBAM <= 6 ? 'good' : 'warn'} />
+                  {/* Right: Institutional Audit Panel */}
+                  <div className="bg-slate-50/40 p-10 flex flex-col h-full">
+                     <div className="flex-1 space-y-8">
+                        <div>
+                           <h4 className="text-[12px] font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center justify-between">
+                              Audit Solvabilité
+                              <Badge className="bg-white text-slate-400 border-slate-200 text-[8px] font-black px-2 py-0">BAM-2026</Badge>
+                           </h4>
+                           <div className="space-y-1.5">
+                              <KpiRow label="CAF / Loyers" value={(kpi.cafLoyers ?? 1.38).toFixed(2)} status={getKpiStatus(kpi.cafLoyers, 1.4, 'above')} />
+                              <KpiRow label="Capacité Rembours." value={(kpi.capaciteRemboursement ?? 0.38).toFixed(2)} status={getKpiStatus(kpi.capaciteRemboursement, 0.33, 'above')} />
+                              <KpiRow label="Couv. Charges Fin." value={(kpi.couvertureCharges ?? 4.2).toFixed(2)} status={getKpiStatus(kpi.couvertureCharges, 3.0, 'above')} />
+                              <KpiRow label="Liquidité Générale" value={(kpi.liquiditeGenerale ?? 1.2).toFixed(2)} status={getKpiStatus(kpi.liquiditeGenerale, 1.0, 'above')} />
+                              <KpiRow label="Levier Financier" value={(kpi.levierFinancier ?? 2.6).toFixed(2)} status={getKpiStatus(kpi.levierFinancier, 3.0, 'below')} />
+                              <KpiRow label="Rentabilité CP" value={`${(kpi.rentabiliteCP ?? 12).toFixed(1)}%`} status={getKpiStatus(kpi.rentabiliteCP, 10, 'above')} />
+                              <KpiRow label="Autonomie Fin." value={`${(kpi.autonomieFinanciere ?? 28).toFixed(1)}%`} status={getKpiStatus(kpi.autonomieFinanciere, 20, 'above')} />
+                              <KpiRow label="Cotation BAM" value={(kpi.cotationBAM ?? 4).toString()} status={kpi.cotationBAM && kpi.cotationBAM <= 6 ? 'good' : 'warn'} />
+                           </div>
+                        </div>
                      </div>
-                     <div className="pt-6">
-                        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-                           <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Décision Automatisée</p>
-                           <Badge className="w-full justify-center py-2 bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest border-none">
-                              Dossier Favorable - Classe A
-                           </Badge>
+
+                     <div className="mt-12 space-y-4">
+                        <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rotate-45 translate-x-12 -translate-y-12 transition-transform group-hover:bg-emerald-50" />
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 relative z-10">Statut Décisionnel</p>
+                           <div className="relative z-10 flex flex-col items-center">
+                              <Badge className="w-full justify-center py-2.5 bg-slate-900 text-white font-black uppercase text-[11px] tracking-[0.15em] border-none shadow-lg mb-2">
+                                 Éligible - Classe A
+                              </Badge>
+                              <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-tight">Validation Automatique IA Active</p>
+                           </div>
                         </div>
                      </div>
                   </div>
+
                </div>
             </Card>
         </div>
