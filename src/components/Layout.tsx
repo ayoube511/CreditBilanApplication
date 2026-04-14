@@ -38,6 +38,8 @@ export function Layout({ children }: LayoutProps) {
              <Landmark size={22} className="text-slate-900" />
           </Link>
 
+          <span className="text-slate-300 font-light select-none">|</span>
+
           {/* Desktop Nav Links */}
           <nav className="hidden lg:flex items-center gap-1">
             {NAV.map((item) => {
