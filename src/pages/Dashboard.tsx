@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button';
 
 /* ── Capital Guard Style (Design Only) ── */
 
-function CapitalKPI({ label, value, sub, trend, icon: Icon }: any) {
+function CapitalKPI({ label, value, trend, icon: Icon, chartData }: any) {
+  const isPositive = trend?.positive;
+  const color = isPositive ? '#10B981' : '#F43F5E';
+
   return (
     <div className="bg-white p-5 border border-slate-200/60 rounded-lg shadow-[0_2px_4px_rgba(0,0,0,0.02)] transition-all hover:shadow-md">
       <div className="flex justify-between items-start mb-4">
@@ -22,19 +25,12 @@ function CapitalKPI({ label, value, sub, trend, icon: Icon }: any) {
       
       <div className="mt-4 flex items-center space-x-3">
         {trend && (
-           <span className={`text-[10px] px-2 py-0.5 font-bold rounded ${trend.positive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-            {trend.positive ? '+' : ''}{trend.value}%
+           <span className={`text-[10px] px-2 py-0.5 font-bold rounded ${isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+            {isPositive ? '+' : ''}{trend.value}%
           </span>
         )}
-        <div className="flex-1 h-8 opacity-40">
-           <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
-             <path 
-               d={trend?.positive ? "M0,25 Q10,15 20,20 T40,10 T60,18 T80,5 T100,12" : "M0,5 Q15,25 30,15 T50,25 T70,10 T100,20"} 
-               fill="none" 
-               stroke="#565e74" 
-               strokeWidth="2" 
-             />
-           </svg>
+        <div className="flex-1 h-8">
+           <Sparkline data={chartData} color={color} height={32} />
         </div>
       </div>
     </div>
@@ -76,22 +72,12 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 animate-fade-in max-w-[1500px] mx-auto">
       
-      {/* ── Action Bar ── */}
-      <div className="flex justify-end gap-3 pb-2">
-        <Button variant="outline" className="h-11 px-6 bg-white border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-[0.15em] hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 shadow-sm transition-all rounded-lg">
-          <Share size={14} className="mr-2" /> Reporter
-        </Button>
-        <Button className="h-11 px-8 bg-[#565e74] border border-[#4a5165] text-white font-bold text-[10px] uppercase tracking-[0.2em] shadow-[0_4px_12px_rgba(86,94,116,0.2)] hover:bg-[#4a5165] hover:shadow-lg transform active:scale-[0.98] transition-all rounded-lg">
-          <Zap size={14} className="mr-2" fill="currentColor" /> Nouveau Flux
-        </Button>
-      </div>
-
       {/* ── KPI Matrix ── */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <CapitalKPI label="Demandes Actives" value={mockDashboardStats.totalDemandes.toLocaleString()} trend={{ value: 14.2, positive: true }} icon={Layers} />
-        <CapitalKPI label="En Files Attente" value={mockDashboardStats.enCours.toLocaleString()} trend={{ value: 5.8, positive: false }} icon={Clock} />
-        <CapitalKPI label="Décisions OK" value={mockDashboardStats.approuvees.toLocaleString()} trend={{ value: 12.1, positive: true }} icon={CheckCircle} />
-        <CapitalKPI label="Encours Global" value={formatCurrency(mockDashboardStats.montantTotalPortefeuille).split(',')[0]} trend={{ value: 8.4, positive: true }} icon={Wallet} />
+        <CapitalKPI label="Demandes Actives" value={mockDashboardStats.totalDemandes.toLocaleString()} trend={{ value: 14.2, positive: true }} icon={Layers} chartData={[31, 40, 28, 51, 42, 109, 100]} />
+        <CapitalKPI label="En Files Attente" value={mockDashboardStats.enCours.toLocaleString()} trend={{ value: 5.8, positive: false }} icon={Clock} chartData={[11, 32, 45, 32, 34, 52, 41]} />
+        <CapitalKPI label="Décisions OK" value={mockDashboardStats.approuvees.toLocaleString()} trend={{ value: 12.1, positive: true }} icon={CheckCircle} chartData={[35, 20, 45, 60, 55, 70, 90]} />
+        <CapitalKPI label="Encours Global" value={formatCurrency(mockDashboardStats.montantTotalPortefeuille).split(',')[0]} trend={{ value: 8.4, positive: true }} icon={Wallet} chartData={[50, 55, 45, 60, 58, 65, 75]} />
       </section>
 
       {/* ── Core Intelligence Grid ── */}
