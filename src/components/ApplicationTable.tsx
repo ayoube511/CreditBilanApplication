@@ -143,11 +143,11 @@ export function ApplicationTable({ onViewDetails }: ApplicationTableProps) {
                     </td>
                     <td className="px-8 py-5 text-center">
                        <div className="inline-flex items-center gap-2">
-                          <span className={`text-[11px] font-black tabular-nums ${app.score > 75 ? 'text-emerald-600' : 'text-slate-800'}`}>
+                          <span className={`text-[11px] font-black tabular-nums ${app.score >= 80 ? 'text-emerald-600' : app.score >= 65 ? 'text-amber-500' : 'text-rose-500'}`}>
                             {app.score}
                           </span>
                           <div className="w-8 h-1 bg-slate-100 rounded-full overflow-hidden hidden sm:block">
-                             <div className={`h-full ${app.score > 75 ? 'bg-emerald-500' : 'bg-slate-400'}`} style={{ width: `${app.score}%` }} />
+                             <div className={`h-full ${app.score >= 80 ? 'bg-emerald-500' : app.score >= 65 ? 'bg-amber-400' : 'bg-rose-500'}`} style={{ width: `${app.score}%` }} />
                           </div>
                        </div>
                     </td>

@@ -112,26 +112,26 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Benchmarks (RESTORING ORIGINAL LABELS) ── */}
+      {/* ── Benchmarks (SYNCHRONIZED WITH GRILE BAM) ── */}
       <section className="flex flex-col lg:flex-row gap-8">
         <div className="lg:w-1/3 bg-white border border-slate-200/60 rounded-lg p-8 shadow-sm">
            <div className="flex items-center gap-3 mb-8">
               <ShieldCheck size={24} className="text-[#565e74]" />
-              <h3 className="text-md uppercase tracking-tight font-black">Compliance Score</h3>
+              <h3 className="text-sm uppercase tracking-tight font-black">Compliance Score (Moyen)</h3>
            </div>
            <div className="space-y-1">
-              <BenchmarkRow label="CAF / Loyers" value="1.42" target="1.40" />
-              <BenchmarkRow label="Couverture Charges" value="3.15" target="3.00" />
-              <BenchmarkRow label="Liquidité Générale" value="0.98" target="1.00" isBad />
-              <BenchmarkRow label="Levier Financier" value="2.14" target="2.50" />
+              <BenchmarkRow label="CAF / Loyers" value="1.48" target="≥ 1.40" />
+              <BenchmarkRow label="Couverture Charges" value="4.25" target="> 3.00" />
+              <BenchmarkRow label="Liquidité Générale" value="1.45" target="> 1.00" />
+              <BenchmarkRow label="Levier Financier" value="2.15" target="≤ 3.00" />
            </div>
         </div>
 
-        {/* Action Registry (RESTORING ORIGINAL LABELS) */}
+        {/* Action Registry (SYNCHRONIZED) */}
         <div className="lg:w-2/3 bg-white border border-slate-200/60 rounded-lg overflow-hidden shadow-sm">
            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-white/50">
               <div>
-                <h3 className="text-md font-black text-slate-800 uppercase tracking-tight">Flux de Décisions Récents</h3>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Flux de Décisions Récents</h3>
               </div>
               <Link to={ROUTE_PATHS.APPLICATIONS}>
                  <Button variant="ghost" className="text-[10px] font-bold uppercase tracking-widest text-slate-600 gap-2 hover:text-[#565e74]">

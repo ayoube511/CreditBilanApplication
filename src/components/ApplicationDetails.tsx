@@ -1,4 +1,5 @@
-import { X, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, FileText, Download, Sparkles, ShieldCheck, Activity } from 'lucide-react';
+import { useState } from 'react';
+import { X, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, FileText, Download, Sparkles, ShieldCheck, Activity, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,14 @@ import { mockApplications } from '@/data/index';
 import { formatCurrency, formatDate, getClassColor, getStatusColor } from '@/lib/index';
 import { IMAGES } from '@/assets/images';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts';
+
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription 
+} from '@/components/ui/dialog';
 
 interface ApplicationDetailsProps {
   applicationId: string;
@@ -23,40 +32,66 @@ interface KpiRowProps {
 
 function KpiRow({ label, value, seuil, status = 'neutral' }: KpiRowProps) {
   const colors = {
-    good:    'text-chart-2',
-    warn:    'text-chart-3',
-    bad:     'text-chart-4',
-    neutral: 'text-foreground',
+    good:    'text-emerald-500',
+    warn:    'text-amber-500',
+    bad:     'text-rose-500',
+    neutral: 'text-slate-800',
   };
   const dots = {
-    good:    'bg-chart-2',
-    warn:    'bg-chart-3',
-    bad:     'bg-chart-4',
-    neutral: 'bg-muted-foreground',
+    good:    'bg-emerald-500',
+    warn:    'bg-amber-500',
+    bad:     'bg-rose-500',
+    neutral: 'bg-slate-300',
   };
   return (
-    <div className="flex items-center justify-between py-2 border-b border-border/40 last:border-0">
-      <div className="flex items-center gap-2">
-        <div className={`h-1.5 w-1.5 rounded-full ${dots[status]}`} />
-        <span className="text-xs text-muted-foreground">{label}</span>
+    <div className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0 group">
+      <div className="flex items-center gap-3">
+        <div className={`h-1.5 w-1.5 rounded-full ${dots[status]} shadow-sm`} />
+        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight group-hover:text-slate-700 transition-colors">{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className={`text-sm font-bold font-mono ${colors[status]}`}>{value}</span>
-        {seuil && <span className="text-[10px] text-muted-foreground/60">({seuil})</span>}
+        <span className={`text-[12px] font-black tabular-nums ${colors[status]}`}>{value}</span>
+        {seuil && <span className="text-[9px] font-bold text-slate-300 uppercase">/ {seuil}</span>}
       </div>
     </div>
   );
 }
 
-function getKpiStatus(value: number | undefined, threshold: number, direction: 'above' | 'below'): 'good' | 'warn' | 'bad' {
-  if (value === undefined) return 'neutral' as 'bad';
-  const ratio = direction === 'above' ? value / threshold : threshold / value;
-  if (ratio >= 1.1) return 'good';
-  if (ratio >= 0.9) return 'warn';
-  return 'bad';
+/**
+ * Audit de Conformité — Basé sur la grille institutionnelle BAM
+ * CAF/Loyers: >= 1.4 (Good), 1.2 - 1.4 (Warn), < 1.2 (Bad)
+ * DSCR: > 1.25 (Good)
+ * BAM: <= 6 (Good), > 6 (Bad / Bloquant)
+ */
+function getKpiStatus(key: string, value: number | undefined): 'good' | 'warn' | 'bad' {
+  if (value === undefined) return 'neutral' as any;
+  
+  switch(key) {
+    case 'cafLoyers':
+      if (value >= 1.4) return 'good';
+      if (value >= 1.2) return 'warn';
+      return 'bad';
+    case 'dscr':
+      return value >= 1.25 ? 'good' : 'bad';
+    case 'liquidite':
+      return value > 1.0 ? 'good' : 'bad';
+    case 'levier':
+      return value <= 3.0 ? 'good' : 'bad';
+    case 'autonomie':
+      return value >= 20 ? 'good' : 'bad';
+    case 'capacite':
+      return value > 0.33 ? 'good' : 'bad';
+    case 'bam':
+      return value <= 6 ? 'good' : 'bad';
+    case 'defaut':
+      return value < 10 ? 'good' : value < 20 ? 'warn' : 'bad';
+    default:
+      return 'good';
+  }
 }
 
 export function ApplicationDetails({ applicationId, onClose }: ApplicationDetailsProps) {
+  const [selectedDoc, setSelectedDoc] = useState<{ url: string; title: string } | null>(null);
   const application = mockApplications.find(app => app.id === applicationId);
 
   if (!application) {
@@ -64,7 +99,7 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
       <div className="w-full flex items-center justify-center p-20 animate-fade-in">
         <div className="bg-white border border-slate-200 p-8 rounded-xl shadow-sm text-center max-w-sm">
            <AlertTriangle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-           <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Dossier de Introuvable</h3>
+           <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Dossier Introuvable</h3>
            <p className="text-[10px] text-slate-400 font-bold uppercase mt-2 mb-6">Le registre {applicationId} est inaccessible.</p>
            <Button onClick={onClose} className="w-full bg-[#565e74] text-white text-[10px] font-black uppercase tracking-widest h-10">Retour au Registre</Button>
         </div>
@@ -367,14 +402,14 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
                               <Badge className="bg-white text-slate-400 border-slate-200 text-[8px] font-black px-2 py-0">BAM-2026</Badge>
                            </h4>
                            <div className="space-y-1.5">
-                              <KpiRow label="CAF / Loyers" value={(kpi.cafLoyers ?? 1.38).toFixed(2)} status={getKpiStatus(kpi.cafLoyers, 1.4, 'above')} />
-                              <KpiRow label="Capacité Rembours." value={(kpi.capaciteRemboursement ?? 0.38).toFixed(2)} status={getKpiStatus(kpi.capaciteRemboursement, 0.33, 'above')} />
-                              <KpiRow label="Couv. Charges Fin." value={(kpi.couvertureCharges ?? 4.2).toFixed(2)} status={getKpiStatus(kpi.couvertureCharges, 3.0, 'above')} />
-                              <KpiRow label="Liquidité Générale" value={(kpi.liquiditeGenerale ?? 1.2).toFixed(2)} status={getKpiStatus(kpi.liquiditeGenerale, 1.0, 'above')} />
-                              <KpiRow label="Levier Financier" value={(kpi.levierFinancier ?? 2.6).toFixed(2)} status={getKpiStatus(kpi.levierFinancier, 3.0, 'below')} />
-                              <KpiRow label="Rentabilité CP" value={`${(kpi.rentabiliteCP ?? 12).toFixed(1)}%`} status={getKpiStatus(kpi.rentabiliteCP, 10, 'above')} />
-                              <KpiRow label="Autonomie Fin." value={`${(kpi.autonomieFinanciere ?? 28).toFixed(1)}%`} status={getKpiStatus(kpi.autonomieFinanciere, 20, 'above')} />
-                              <KpiRow label="Cotation BAM" value={(kpi.cotationBAM ?? 4).toString()} status={kpi.cotationBAM && kpi.cotationBAM <= 6 ? 'good' : 'warn'} />
+                              <KpiRow label="CAF / Loyers" value={(kpi.cafLoyers ?? 1.38).toFixed(2)} status={getKpiStatus('cafLoyers', kpi.cafLoyers)} />
+                              <KpiRow label="Capacité Rembours." value={(kpi.capaciteRemboursement ?? 0.38).toFixed(2)} status={getKpiStatus('capacite', kpi.capaciteRemboursement)} />
+                              <KpiRow label="Couv. Charges Fin." value={(kpi.couvertureCharges ?? 4.2).toFixed(2)} status={getKpiStatus('couvertureCharges', kpi.couvertureCharges)} />
+                              <KpiRow label="Liquidité Générale" value={(kpi.liquiditeGenerale ?? 1.2).toFixed(2)} status={getKpiStatus('liquidite', kpi.liquiditeGenerale)} />
+                              <KpiRow label="Levier Financier" value={(kpi.levierFinancier ?? 2.6).toFixed(2)} status={getKpiStatus('levier', kpi.levierFinancier)} />
+                              <KpiRow label="Rentabilité CP" value={`${(kpi.rentabiliteCP ?? 12).toFixed(1)}%`} status={getKpiStatus('rentabiliteCP', kpi.rentabiliteCP)} />
+                              <KpiRow label="Autonomie Fin." value={`${(kpi.autonomieFinanciere ?? 28).toFixed(1)}%`} status={getKpiStatus('autonomie', kpi.autonomieFinanciere)} />
+                              <KpiRow label="Cotation BAM" value={(kpi.cotationBAM ?? 4).toString()} status={getKpiStatus('bam', kpi.cotationBAM)} />
                            </div>
                         </div>
                      </div>
@@ -397,25 +432,130 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
             </Card>
         </div>
 
-        {/* ── DOCUMENTS ── */}
+        {/* ── ARCHIVES DOCUMENTAIRES CERTIFIÉES (DIGITAL VAULT) ── */}
         <div className="lg:col-span-12">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-4 mb-6">
-               <div className="h-px bg-slate-200 flex-1" />
-               Archives Documentaires Certifiées
-               <div className="h-px bg-slate-200 flex-1" />
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-               {application.documents.map((doc, idx) => (
-                  <div key={doc.id} className="p-3 border border-slate-100 rounded-xl hover:border-[#565e74]/30 hover:shadow-md transition-all cursor-pointer group bg-white">
-                     <div className="aspect-[3/4] bg-slate-50 rounded-lg mb-3 overflow-hidden">
-                        <img src={documentImages[idx % documentImages.length]} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105" />
+            <div className="flex items-center justify-between mb-8">
+               <div className="flex items-center gap-4">
+                  <div className="w-10 h-px bg-slate-200" />
+                  <h3 className="text-[12px] font-black text-slate-800 uppercase tracking-[0.2em] flex items-center gap-3">
+                     <ShieldCheck size={18} className="text-[#565e74]" /> Archives Certifiées
+                  </h3>
+               </div>
+               <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Vérification OCR Active</span>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+               {application.documents.map((doc) => (
+                  <div 
+                    key={doc.id} 
+                    onClick={() => setSelectedDoc({ url: doc.url, title: doc.type })}
+                    className="group relative bg-white border border-slate-100 rounded-3xl p-6 transition-all duration-500 cursor-pointer hover:border-emerald-200/50 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08)] overflow-hidden"
+                  >
+                     
+                     <div className="relative aspect-[4/3] bg-white rounded-2xl mb-6 overflow-hidden border border-slate-200 shadow-sm transition-all duration-500 hover:border-emerald-400 group-hover:scale-[1.01]">
+                        {/* THE REAL IFRAME PREVIEW - ALWAYS VISIBLE */}
+                        <div className="absolute inset-0 w-[400%] h-[400%] origin-top-left scale-[0.25] pointer-events-none bg-white">
+                           {doc.url !== '#' && (
+                             <iframe 
+                               src={`${doc.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} 
+                               className="w-full h-full border-none"
+                               title="Real Preview"
+                             />
+                           )}
+                        </div>
+
+                        {/* SUBTLE INTERACTIVE OVERLAY (ICON DISAPPEARS OR SHRINKS ON HOVER) */}
+                        <div className="absolute inset-0 bg-slate-900/0 hover:bg-slate-900/5 transition-all duration-300 flex items-center justify-center group">
+                           <div className="p-3 bg-white/90 backdrop-blur-md rounded-full shadow-xl border border-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Eye className="text-emerald-600" size={24} />
+                           </div>
+                        </div>
                      </div>
-                     <p className="text-[9px] font-black text-slate-800 truncate uppercase">{doc.type}</p>
-                     <p className="text-[8px] font-bold text-slate-300 uppercase mt-0.5">{formatDate(doc.dateUpload)}</p>
+
+                     {/* Document Identity */}
+                     <div className="space-y-1.5 mb-6">
+                        <div className="flex items-center justify-between">
+                           <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-tight truncate">{doc.type}</h4>
+                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 truncate opacity-80">{doc.nom}</p>
+                     </div>
+
+                     {/* Quick Audit Footer */}
+                     <div className="flex items-center gap-3 pt-5 border-t border-slate-50">
+                        <Button 
+                          variant="ghost" 
+                          asChild
+                          className="flex-1 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                           <a href={doc.url} download>
+                             <Download size={14} className="mr-2" /> Download
+                           </a>
+                        </Button>
+                        <div className="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[9px] font-black uppercase tracking-tighter">
+                           100% OCR
+                        </div>
+                     </div>
                   </div>
                ))}
             </div>
         </div>
+
+        {/* ── UNIFIED PDF PREVIEW VAULT (LIGHT THEME & FIXED CENTERING) ── */}
+        <Dialog open={!!selectedDoc} onOpenChange={(open) => !open && setSelectedDoc(null)}>
+          <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[95vw] w-[1400px] h-[92vh] p-0 overflow-hidden bg-white border-slate-200 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] z-[100] rounded-3xl outline-none flex flex-col">
+            
+            {/* App-Aligned Light Header */}
+            <div className="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-10 relative z-10 shrink-0">
+              <div className="flex items-center gap-6">
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                   <ShieldCheck className="text-[#565e74]" size={24} />
+                </div>
+                <div>
+                   <h2 className="text-slate-900 text-md font-black uppercase tracking-[0.1em]">{selectedDoc?.title}</h2>
+                   <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">Certifié Alpha-v4</span>
+                      <div className="w-1 h-1 rounded-full bg-slate-200" />
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{selectedDoc?.url.split('/').pop()}</span>
+                   </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                 <Button 
+                   onClick={() => window.print()} 
+                   variant="outline" 
+                   className="text-slate-600 border-slate-200 hover:bg-slate-50 rounded-xl h-12 px-6 text-[10px] font-black uppercase tracking-widest shadow-sm"
+                 >
+                    Exporter Audit
+                 </Button>
+                 <Button 
+                   onClick={() => setSelectedDoc(null)}
+                   variant="ghost"
+                   className="h-12 w-12 rounded-2xl bg-slate-50 hover:bg-rose-500 transition-all text-slate-400 hover:text-white border border-slate-100"
+                 >
+                    <X size={20} />
+                 </Button>
+              </div>
+            </div>
+
+            {/* Immersive View Port */}
+            <div className="flex-1 w-full bg-slate-100/50 relative overflow-hidden">
+               {selectedDoc && (
+                 <iframe 
+                   src={`${selectedDoc.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} 
+                   className="w-full h-full border-none opacity-0 transition-opacity duration-1000 bg-white animate-in zoom-in-95"
+                   onLoad={(e) => (e.currentTarget as HTMLIFrameElement).classList.replace('opacity-0', 'opacity-100')}
+                   title="PDF Preview"
+                 />
+               )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -5,8 +5,8 @@ export const ROUTE_PATHS = {
   SETTINGS: '/settings',
 } as const;
 
-export type Segment = 'TPE' | 'PME' | 'Corporate';
-export type Sector = 'Transport' | 'Agroalimentaire' | 'BTP' | 'Commerce' | 'Industrie' | 'Services' | 'Santé' | 'Technologie' | 'Immobilier' | 'Agriculture';
+export type Segment = 'TPE' | 'PME' | 'Corporate' | 'Média';
+export type Sector = 'Transport' | 'Agroalimentaire' | 'BTP' | 'Commerce' | 'Industrie' | 'Services' | 'Santé' | 'Technologie' | 'Immobilier' | 'Agriculture' | 'Textile' | 'Média';
 export type Status = 'En cours' | 'Approuvé' | 'Refusé' | 'En attente';
 export type CreditClass = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 
@@ -44,7 +44,7 @@ export interface Flag {
 
 export interface Document {
   id: string;
-  type: 'Bilan' | 'Relevé bancaire' | 'Garantie' | 'Statuts' | 'Autre';
+  type: 'Bilan' | 'Relevé bancaire' | 'Garantie' | 'Statuts' | 'Autre' | 'Liasse Fiscale' | 'Bilan Simplifié' | 'Certification';
   nom: string;
   dateUpload: string;
   url: string;
