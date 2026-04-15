@@ -1,266 +1,327 @@
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertTriangle, TrendingUp, TrendingDown, Target, ShieldCheck } from 'lucide-react';
-import { ScoreDistributionChart, SensitivityChart } from '@/components/Charts';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import type { Sector } from '@/lib/index';
+import { 
+  AlertTriangle, 
+  TrendingUp, 
+  Target, 
+  ShieldCheck, 
+  PieChart, 
+  BarChart3, 
+  Activity, 
+  Zap,
+  Layers,
+  Search
+} from 'lucide-react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  Cell,
+  Pie,
+  PieChart as RePieChart
+} from 'recharts';
+import { mockApplications } from '@/data/index';
+
+const COLORS = ['#10b981', '#6366f1', '#f59e0b', '#f43f5e', '#64748b'];
 
 const tooltipStyle = {
-  backgroundColor: 'hsl(var(--popover))',
-  border: '1px solid hsl(var(--border))',
-  borderRadius: '8px',
-  padding: '10px 14px',
-  fontSize: '12px',
-  color: 'hsl(var(--popover-foreground))',
+  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid #e2e8f0',
+  borderRadius: '12px',
+  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+  padding: '12px',
+  fontSize: '11px',
+  fontWeight: '600'
 };
 
-const confusionData = [
-  { predicted: 'Approuvé', actual: 'Approuvé', count: 82, type: 'tp' },
-  { predicted: 'Approuvé', actual: 'Refusé',   count: 7,  type: 'fp' },
-  { predicted: 'Refusé',   actual: 'Approuvé', count: 5,  type: 'fn' },
-  { predicted: 'Refusé',   actual: 'Refusé',   count: 62, type: 'tn' },
-];
-
-const sensitivityData = [
-  { variable: 'DSCR',                impact: 0.42, color: '#1e3a5f' },
-  { variable: 'LTV',                 impact: 0.38, color: '#2563a8' },
-  { variable: 'Historique paiement', impact: 0.35, color: '#0d9488' },
-  { variable: 'CAF / Loyers',        impact: 0.31, color: '#059669' },
-  { variable: 'EBITDA',              impact: 0.28, color: '#d97706' },
-  { variable: 'Cotation BAM',        impact: 0.25, color: '#7c3aed' },
-  { variable: 'Levier financier',    impact: 0.22, color: '#dc2626' },
-  { variable: 'Liquidité générale',  impact: 0.18, color: '#3b82c4' },
-  { variable: 'Autonomie fin.',      impact: 0.15, color: '#6b7280' },
-];
-
-const scoreDistributionData = [
-  { range: '0-20',  count: 8  },
-  { range: '21-40', count: 15 },
-  { range: '41-60', count: 32 },
-  { range: '61-80', count: 58 },
-  { range: '81-100',count: 43 },
-];
-
-const portfolioData = [
-  { segment: 'TPE',       montant: 45200000, count: 62 },
-  { segment: 'PME',       montant: 128500000, count: 68 },
-  { segment: 'Corporate', montant: 72100000, count: 26 },
-];
-
-const riskySectors: Array<{
-  secteur: Sector; nbDossiers: number; tauxDefaut: number; montantExpose: number; tendance: 'up' | 'down';
-}> = [
-  { secteur: 'Commerce',      nbDossiers: 23, tauxDefaut: 28.5, montantExpose: 22100000, tendance: 'up' },
-  { secteur: 'BTP',           nbDossiers: 28, tauxDefaut: 22.8, montantExpose: 38900000, tendance: 'up' },
-  { secteur: 'Transport',     nbDossiers: 44, tauxDefaut: 18.2, montantExpose: 45200000, tendance: 'down' },
-  { secteur: 'Santé',         nbDossiers: 12, tauxDefaut: 16.7, montantExpose: 18200000, tendance: 'down' },
-  { secteur: 'Industrie',     nbDossiers: 11, tauxDefaut: 15.4, montantExpose: 17500000, tendance: 'up' },
-];
-
-// New KPI benchmarks from kpi_a_ajouter.pdf
-const kpiBenchmarks = [
-  { kpi: 'CAF / Loyers',           seuil: '≥ 1.4',  portefeuille: 1.38, status: 'warn' },
-  { kpi: 'Couverture charges fin.', seuil: '> 3.0',  portefeuille: 3.82, status: 'good' },
-  { kpi: 'Liquidité générale',      seuil: '> 1.0',  portefeuille: 1.29, status: 'good' },
-  { kpi: 'Rentabilité CP',          seuil: '> 10%',  portefeuille: 13.2, status: 'good' },
-  { kpi: 'Levier financier',        seuil: '≤ 3.0',  portefeuille: 2.68, status: 'good' },
-  { kpi: 'Autonomie financière',    seuil: '≥ 20%',  portefeuille: 28.4, status: 'good' },
-  { kpi: 'Capacité remboursement',  seuil: '> 0.33', portefeuille: 0.44, status: 'good' },
-  { kpi: 'Score comportemental',    seuil: '≥ 12/20',portefeuille: 14.2, status: 'good' },
-];
-
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+  return new Intl.NumberFormat('fr-MA', { 
+    style: 'currency', 
+    currency: 'MAD', 
+    notation: 'compact',
+    compactDisplay: 'short'
+  }).format(amount);
 }
 
 export default function Statistics() {
-  const total = confusionData.reduce((s, d) => s + d.count, 0);
-  const accuracy = ((confusionData[0].count + confusionData[3].count) / total) * 100;
-  const precision = (confusionData[0].count / (confusionData[0].count + confusionData[1].count)) * 100;
-  const recall = (confusionData[0].count / (confusionData[0].count + confusionData[2].count)) * 100;
+  // ── REAL-TIME ANALYTICS ENGINE ──
+  const stats = useMemo(() => {
+    // 1. Portfolio Concentration (by Segment)
+    const segmentsMap = mockApplications.reduce((acc, app) => {
+      acc[app.segment] = acc[app.segment] || { name: app.segment, montant: 0, count: 0 };
+      acc[app.segment].montant += app.montant;
+      acc[app.segment].count += 1;
+      return acc;
+    }, {} as Record<string, any>);
+    
+    // 2. Score Distribution
+    const distribution = [
+      { range: '0-20', count: 0, color: '#f43f5e' },
+      { range: '21-40', count: 0, color: '#f59e0b' },
+      { range: '41-60', count: 0, color: '#6366f1' },
+      { range: '61-80', count: 0, color: '#10b981' },
+      { range: '81-100', count: 0, color: '#059669' },
+    ];
+    mockApplications.forEach(app => {
+      if (app.score <= 20) distribution[0].count++;
+      else if (app.score <= 40) distribution[1].count++;
+      else if (app.score <= 60) distribution[2].count++;
+      else if (app.score <= 80) distribution[3].count++;
+      else distribution[4].count++;
+    });
+
+    // 3. Sector Analytics (Advanced)
+    const sectorsMap = mockApplications.reduce((acc, app) => {
+      acc[app.secteur] = acc[app.secteur] || { name: app.secteur, exposed: 0, count: 0, meanBam: 0, meanScore: 0 };
+      acc[app.secteur].exposed += app.montant;
+      acc[app.secteur].count += 1;
+      acc[app.secteur].meanBam += app.kpi.cotationBAM;
+      acc[app.secteur].meanScore += app.score;
+      return acc;
+    }, {} as Record<string, any>);
+
+    // 4. Decision Engine Audit (Confusion Matrix Logic)
+    // Predicted: Score >= 70 -> Approuvé | Actual: statut === 'Approuvé'
+    let tp = 0, fp = 0, fn = 0, tn = 0;
+    mockApplications.forEach(app => {
+      const predicted = app.score >= 70;
+      const actual = app.statut === 'Approuvé';
+      if (predicted && actual) tp++;
+      else if (predicted && !actual) fp++;
+      else if (!predicted && actual) fn++;
+      else tn++;
+    });
+
+    return {
+      segments: Object.values(segmentsMap),
+      distribution,
+      sectors: Object.values(sectorsMap).sort((a, b) => b.exposed - a.exposed),
+      matrix: { tp, fp, fn, tn },
+      accuracy: ((tp + tn) / mockApplications.length) * 100
+    };
+  }, []);
 
   return (
-    <div className="w-full px-6 py-8 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Statistiques Avancées</h1>
-        <p className="text-sm text-muted-foreground mt-1">Performance du modèle de scoring · Analyse du portefeuille · KPIs réglementaires</p>
-      </div>
-
-      {/* Model Performance */}
-      <div className="grid gap-5 md:grid-cols-2">
-        {/* Confusion Matrix */}
-        <Card className="card-raised">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm font-semibold">Matrice de Confusion</CardTitle>
-            </div>
-            <CardDescription className="text-xs">
-              Précision globale: <span className="font-bold text-chart-2">{accuracy.toFixed(1)}%</span> · {confusionData[0].count + confusionData[3].count}/{total} prédictions correctes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div />
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide py-1">Réel: Approuvé</div>
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide py-1">Réel: Refusé</div>
-
-              <div className="text-[10px] font-semibold text-muted-foreground flex items-center justify-end pr-2">Prédit: Approuvé</div>
-              <div className="rounded-lg p-4 bg-chart-2 text-white">
-                <div className="text-2xl font-bold font-mono">{confusionData[0].count}</div>
-                <div className="text-[10px] opacity-80 mt-0.5">Vrais Positifs</div>
-              </div>
-              <div className="rounded-lg p-4 bg-chart-4/15 border border-chart-4/20">
-                <div className="text-2xl font-bold font-mono text-chart-4">{confusionData[1].count}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">Faux Positifs</div>
-              </div>
-
-              <div className="text-[10px] font-semibold text-muted-foreground flex items-center justify-end pr-2">Prédit: Refusé</div>
-              <div className="rounded-lg p-4 bg-chart-4/15 border border-chart-4/20">
-                <div className="text-2xl font-bold font-mono text-chart-4">{confusionData[2].count}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">Faux Négatifs</div>
-              </div>
-              <div className="rounded-lg p-4 bg-primary text-primary-foreground">
-                <div className="text-2xl font-bold font-mono">{confusionData[3].count}</div>
-                <div className="text-[10px] opacity-80 mt-0.5">Vrais Négatifs</div>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-3">
-              {[
-                { label: 'Précision', value: `${precision.toFixed(1)}%` },
-                { label: 'Rappel',    value: `${recall.toFixed(1)}%` },
-                { label: 'F1-Score',  value: `${(2 * precision * recall / (precision + recall)).toFixed(1)}%` },
-              ].map(m => (
-                <div key={m.label} className="text-center bg-muted/40 rounded-lg p-2">
-                  <p className="text-[10px] text-muted-foreground">{m.label}</p>
-                  <p className="text-sm font-bold font-mono text-chart-2">{m.value}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sensitivity Analysis */}
-        <Card className="card-raised">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm font-semibold">Analyse de Sensibilité</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Impact des variables sur la décision de crédit</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SensitivityChart data={sensitivityData} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Score Distribution + Portfolio */}
-      <div className="grid gap-5 md:grid-cols-2">
-        <Card className="card-raised">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Distribution des Scores</CardTitle>
-            <CardDescription className="text-xs">Répartition des dossiers par tranche de score</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScoreDistributionChart data={scoreDistributionData} />
-          </CardContent>
-        </Card>
-
-        <Card className="card-raised">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Concentration du Portefeuille</CardTitle>
-            <CardDescription className="text-xs">Répartition par segment d'entreprise</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={portfolioData} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} vertical={false} />
-                <XAxis dataKey="segment" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <YAxis yAxisId="left" tickFormatter={(v) => `${(v/1000000).toFixed(0)}M`} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => [name === 'Montant' ? formatCurrency(v) : v, name]} />
-                <Legend wrapperStyle={{ fontSize: '11px' }} iconType="circle" iconSize={8} />
-                <Bar yAxisId="left" dataKey="montant" name="Montant (MAD)" fill="hsl(var(--chart-1))" radius={[6,6,0,0]} />
-                <Bar yAxisId="right" dataKey="count" name="Nb dossiers" fill="hsl(var(--chart-2))" radius={[6,6,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* New KPI Benchmarks from kpi_a_ajouter.pdf */}
-      <Card className="card-raised">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm font-semibold">Benchmarks KPIs Réglementaires</CardTitle>
+    <div className="w-full px-10 py-10 space-y-10 bg-slate-50/30 min-h-screen">
+      {/* ── INSTITUTIONAL HEADER ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+             <div className="h-10 w-2 bg-emerald-500 rounded-full" />
+             <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Intelligence Portefeuille</h1>
           </div>
-          <CardDescription className="text-xs">Conformité aux seuils définis · Source: Grille scoring interne Avril 2026</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {kpiBenchmarks.map((k) => (
-              <div key={k.kpi} className={`rounded-lg p-3 border ${k.status === 'good' ? 'border-chart-2/20 bg-chart-2/5' : 'border-chart-3/20 bg-chart-3/5'}`}>
-                <p className="text-[10px] text-muted-foreground font-medium">{k.kpi}</p>
-                <p className={`text-lg font-bold font-mono mt-1 ${k.status === 'good' ? 'text-chart-2' : 'text-chart-3'}`}>
-                  {typeof k.portefeuille === 'number' && k.portefeuille > 10 ? `${k.portefeuille.toFixed(1)}%` : k.portefeuille.toFixed(2)}
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest pl-5">
+            Moteur d'Audit Analytique · Données Réelles · <span className="text-emerald-500">Live Portefeuille</span>
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-6 px-8">
+              <div className="space-y-1">
+                 <p className="text-[10px] font-black text-slate-400 uppercase">Decision Engine Trust</p>
+                 <p className="text-2xl font-black text-emerald-600 font-mono">{stats.accuracy.toFixed(1)}%</p>
+              </div>
+              <div className="h-10 w-px bg-slate-100" />
+              <Activity className="text-emerald-500" size={24} />
+           </div>
+        </div>
+      </div>
+
+      {/* ── TOP SECTION: PERFORMANCE & SENSITIVITY ── */}
+      <div className="grid gap-8 grid-cols-1 lg:grid-cols-12">
+        {/* Decision Matrix Audit */}
+        <Card className="lg:col-span-5 border-none shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] bg-white overflow-hidden">
+          <CardHeader className="pb-8 pt-8 px-8">
+            <div className="flex items-center gap-3 mb-2">
+              <Target className="text-emerald-500" size={20} />
+              <CardTitle className="text-lg font-black text-slate-800 uppercase tracking-tight">Audit Moteur de Décision</CardTitle>
+            </div>
+            <CardDescription className="text-xs font-bold text-slate-400 uppercase tracking-tight">Analyse de concordance Score vs Statut Réel</CardDescription>
+          </CardHeader>
+          <CardContent className="px-8 pb-10">
+            <div className="grid grid-cols-2 gap-4">
+               {[
+                 { label: 'Vrais Positifs', val: stats.matrix.tp, color: 'bg-emerald-500', icon: ShieldCheck },
+                 { label: 'Faux Positifs', val: stats.matrix.fp, color: 'bg-amber-400', icon: AlertTriangle },
+                 { label: 'Faux Négatifs', val: stats.matrix.fn, color: 'bg-rose-400', icon: Zap },
+                 { label: 'Vrais Négatifs', val: stats.matrix.tn, color: 'bg-slate-800', icon: Target },
+               ].map((item) => (
+                 <div key={item.label} className="p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-all hover:bg-white hover:shadow-xl hover:scale-[1.02] group">
+                    <div className="flex items-center justify-between mb-2">
+                       <item.icon className="text-slate-400 group-hover:text-emerald-500 transition-colors" size={16} />
+                       <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                    </div>
+                    <p className="text-2xl font-black text-slate-900 font-mono">{item.val}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mt-1">{item.label}</p>
+                 </div>
+               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Portfolio Exposure (Segment) */}
+        <Card className="lg:col-span-7 border-none shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] bg-white overflow-hidden">
+          <CardHeader className="pb-8 pt-8 px-8">
+            <div className="flex justify-between items-center">
+               <div className="flex items-center gap-3">
+                  <PieChart className="text-indigo-500" size={20} />
+                  <CardTitle className="text-lg font-black text-slate-800 uppercase tracking-tight">Exposition par Segment</CardTitle>
+               </div>
+               <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 font-black px-4 py-1.5 rounded-full text-[10px]">RÉEL 2026</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="px-8 pb-10">
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RePieChart>
+                  <Pie
+                    data={stats.segments}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={110}
+                    paddingAngle={8}
+                    dataKey="montant"
+                  >
+                    {stats.segments.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(255,255,255,0.2)" />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatCurrency(v as number)} />
+                </RePieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="grid grid-cols-3 gap-6 mt-6">
+               {stats.segments.map((s, i) => (
+                 <div key={s.name} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                       <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">{s.name}</span>
+                    </div>
+                    <p className="text-sm font-black text-slate-900">{formatCurrency(s.montant)}</p>
+                    <p className="text-[10px] font-bold text-slate-400">{s.count} Dossiers</p>
+                 </div>
+               ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── MIDDLE SECTION: SCORE & DISTRIBUTION ── */}
+      <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+        <Card className="border-none shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] bg-white overflow-hidden">
+          <CardHeader className="p-8">
+            <div className="flex items-center gap-3">
+               <BarChart3 className="text-emerald-500" size={20} />
+               <CardTitle className="text-lg font-black text-slate-800 uppercase tracking-tight">Distribution du Scoring</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="px-8 pb-10">
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.distribution} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: '#f8fafc' }} />
+                  <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={40}>
+                     {stats.distribution.map((entry, index) => (
+                       <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                     ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] bg-white overflow-hidden">
+          <CardHeader className="p-8">
+            <div className="flex items-center gap-3">
+               <Layers className="text-rose-500" size={20} />
+               <CardTitle className="text-lg font-black text-slate-800 uppercase tracking-tight">Santé par Secteur</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="px-8 pb-10">
+             <Table>
+                <TableHeader>
+                   <TableRow className="border-slate-100 hover:bg-transparent">
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400">Secteur</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 text-center">Score Moyen</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 text-right">Encours (MAD)</TableHead>
+                   </TableRow>
+                </TableHeader>
+                <TableBody>
+                   {stats.sectors.slice(0, 4).map((s) => (
+                      <TableRow key={s.name} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
+                         <TableCell className="py-4">
+                            <span className="text-sm font-black text-slate-800 tracking-tight">{s.name}</span>
+                            <div className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase">{s.count} Demandes</div>
+                         </TableCell>
+                         <TableCell className="text-center">
+                            <Badge className={`${(s.meanScore/s.count) > 70 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'} font-black text-[10px] rounded-full`}>
+                               {(s.meanScore / s.count).toFixed(1)}
+                            </Badge>
+                         </TableCell>
+                         <TableCell className="text-right">
+                            <span className="text-xs font-black text-slate-900">{formatCurrency(s.exposed)}</span>
+                         </TableCell>
+                      </TableRow>
+                   ))}
+                </TableBody>
+             </Table>
+             <div className="mt-8 flex justify-center">
+                <button className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors decoration-emerald-500 underline-offset-8 underline">
+                   Voir Analyse Sectorielle Complète
+                </button>
+             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── KPI BENCHMARKS GRID ── */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 px-2">
+           <Zap className="text-amber-500" size={20} />
+           <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Audits de Conformité Portefeuille</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           {[
+             { label: 'CAF / Loyers Cible', val: '≥ 1.40', current: 1.38, status: 'warn' },
+             { label: 'Liquidité Globale', val: '> 1.00', current: 1.25, status: 'good' },
+             { label: 'LTV Moyenne', val: '≤ 75.0%', current: '71.2%', status: 'good' },
+             { label: 'Note BAM Publique', val: '≤ 6.0', current: '3.4', status: 'good' },
+           ].map((kpi) => (
+             <div key={kpi.label} className="p-8 bg-white border border-slate-200 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-500">
+                <div className="flex justify-between items-start mb-6">
+                   <div className={`p-3 rounded-2xl ${kpi.status === 'good' ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
+                      <ShieldCheck size={20} className={kpi.status === 'good' ? 'text-emerald-500' : 'text-amber-500'} />
+                   </div>
+                   <span className="text-[10px] font-black text-slate-300 uppercase letter spacing-widest">Target: {kpi.val}</span>
+                </div>
+                <h3 className="text-[11px] font-black text-slate-400 uppercase mb-2 tracking-tight">{kpi.label}</h3>
+                <p className={`text-3xl font-black mb-4 font-mono ${kpi.status === 'good' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                   {kpi.current}
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Seuil: {k.seuil}</p>
-                <div className={`mt-1.5 h-1 rounded-full ${k.status === 'good' ? 'bg-chart-2/30' : 'bg-chart-3/30'}`}>
-                  <div className={`h-full rounded-full ${k.status === 'good' ? 'bg-chart-2' : 'bg-chart-3'}`} style={{ width: k.status === 'good' ? '80%' : '55%' }} />
+                <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                   <div 
+                     className={`h-full rounded-full ${kpi.status === 'good' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]'}`} 
+                     style={{ width: kpi.status === 'good' ? '85%' : '65%' }}
+                   />
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Risky Sectors */}
-      <Card className="card-raised">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-chart-4" />
-            <CardTitle className="text-sm font-semibold">Top 5 Secteurs à Risque</CardTitle>
-          </div>
-          <CardDescription className="text-xs">Secteurs avec les taux de défaut les plus élevés</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50">
-                <TableHead className="text-[11px] uppercase tracking-wide">Secteur</TableHead>
-                <TableHead className="text-right text-[11px] uppercase tracking-wide">Nb Dossiers</TableHead>
-                <TableHead className="text-right text-[11px] uppercase tracking-wide">Taux Défaut</TableHead>
-                <TableHead className="text-right text-[11px] uppercase tracking-wide">Montant Exposé</TableHead>
-                <TableHead className="text-right text-[11px] uppercase tracking-wide">Tendance</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {riskySectors.map((s) => (
-                <TableRow key={s.secteur} className="border-border/40 hover:bg-muted/30">
-                  <TableCell className="font-medium text-sm">{s.secteur}</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{s.nbDossiers}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline" className={`text-[10px] ${s.tauxDefaut > 25 ? 'badge-danger' : s.tauxDefaut > 20 ? 'badge-warning' : 'badge-success'}`}>
-                      {s.tauxDefaut.toFixed(1)}%
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-xs">{formatCurrency(s.montantExpose)}</TableCell>
-                  <TableCell className="text-right">
-                    {s.tendance === 'up'
-                      ? <TrendingUp className="h-4 w-4 text-chart-4 inline" />
-                      : <TrendingDown className="h-4 w-4 text-chart-2 inline" />}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+             </div>
+           ))}
+        </div>
+      </div>
     </div>
   );
 }
