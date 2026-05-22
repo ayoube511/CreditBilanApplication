@@ -635,6 +635,6 @@ Les principales tables de la base de données :
 
 **Plateforme Crédit / Bilan** — Stage professionnel Mai 2026
 
-Développé avec ❤️ par **Ayoub**
+Développé avec ❤️ par **Ayoube MOUBSSITE**
 
 </div>
