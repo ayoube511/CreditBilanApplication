@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, FileText, Download, Sparkles, ShieldCheck, Activity, Eye, RefreshCw } from 'lucide-react';
-import { DocumentSection } from './DocumentSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -287,7 +286,34 @@ export function ApplicationDetails({ applicationId, onClose }: ApplicationDetail
       </div>
 
       {/* Documents */}
-      <DocumentSection applicationId={Number(applicationId)} />
+      <Card className="border-slate-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-[11px] font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+            <ShieldCheck size={14} className="text-[#565e74]" />
+            Archives Documentaires ({documents?.length || 0})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!documents || documents.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText size={32} className="text-slate-200 mx-auto mb-3" />
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Aucun document associé</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {documents.map((doc: any) => (
+                <div key={doc.id} className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-black text-slate-800">{doc.originalFilename}</p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{doc.docType} · {doc.status}</p>
+                  </div>
+                  <FileText size={20} className="text-slate-300" />
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
